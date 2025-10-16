@@ -16,6 +16,7 @@
 
     // Set active class based on current page
     switch($currentPage) {
+        case 'kanriDashboard.php':
         case 'admin_dashboard.php':
             $activeDashboard = 'active';
             break;
