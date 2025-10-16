@@ -55,7 +55,7 @@ function wireQuizLinks(lesson) {
 
 // For Back Button
 function absUrl(path) {
-  return path.replace(/^\//, '');
+  return window.location.origin + (path.startsWith('/') ? path : '/' + path);
 }
 function saveQuizReturnState(reopen) {
   const state = {

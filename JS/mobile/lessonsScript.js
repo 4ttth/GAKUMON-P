@@ -23,7 +23,7 @@ window.__QUIZ_REDIRECTING__ = false;
 
 // For Back Button
 function absUrl(path) {
-  return window.location.origin + path.replace(/^\//, '');
+  return window.location.origin + (path.startsWith('/') ? path : '/' + path);
 }
 function saveQuizReturnState(reopen) {
   const state = {
@@ -39,7 +39,7 @@ function saveQuizReturnState(reopen) {
 let selectedLessonId = null;
 
 function absUrl(path) {
-  return window.location.origin + path.replace(/^\//, '');
+  return window.location.origin + (path.startsWith('/') ? path : '/' + path);
 }
 
 function wireQuizLinks(lesson) {

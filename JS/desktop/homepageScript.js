@@ -16,7 +16,7 @@ document.addEventListener('click', function(e) {
 
 // ---- shared helpers for quiz return ----
 function absUrl(path) {
-  return window.location.origin + path.replace(/^\//, '');
+  return window.location.origin + (path.startsWith('/') ? path : '/' + path);
 }
 function saveQuizReturnState(reopen) {
   const state = {
