@@ -40,7 +40,7 @@ function absUrl(path) {
 
 function wireQuizLinks(lesson) {
   selectedLessonId = lesson.id;
-  const quizUrl = absUrl(`/quiz.php?lesson_id=${encodeURIComponent(selectedLessonId)}`);
+  const quizUrl = absUrl(`quiz.php?lesson_id=${encodeURIComponent(selectedLessonId)}`);
 
   const ids = ['take-quiz-link', 'take-quiz-link-2']; // two buttons on this page
   ids.forEach((id) => {
