@@ -282,6 +282,7 @@ include 'include/desktopKanriNav.php';
                     <?php endif; ?>
                 </div>
             </div>
+                        </div>
 <!-- Include Chart.js for analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="JS/desktop/adminManagementScript.js"></script>
