@@ -2,7 +2,7 @@
 session_start();
 
 $pageTitle = 'GAKUMON — Admin Dashboard';
-$pageCSS = 'CSS/desktop/adminManagementStyle.css';
+$pageCSS = 'CSS/desktop/kanri-merged.css';
 $pageJS = 'JS/desktop/merged-admin_all.js';
 
 include 'include/header.php';
