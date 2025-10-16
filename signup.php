@@ -1,11 +1,6 @@
 <?php
+    ob_start();
     session_start();
-
-    $pageTitle = 'GAKUMON — Sign up';
-    $pageCSS = 'CSS/desktop/signupStyle.css';
-    $pageJS = 'JS/desktop/signupScript.js';
-
-    include 'include/header.php';
     require_once 'config/config.php';    // Database Connection
     require_once 'include/sendEmail.inc.php';
 
@@ -94,6 +89,8 @@
             $stmt->bind_param("ssssss", $firstName, $lastName, $username, $emailAddress, $hashedPass, $otp);
 
             if($stmt->execute()) {
+                $stmt->close();
+                
                 // Prepare email content
                 $subject = "GAKUMON - Email Verification";
                 $body = "
@@ -104,27 +101,20 @@
                     <p>If you didn't create an account, please ignore this email.</p>
                 ";
 
+                // Set session email for verification
+                $_SESSION['verification_email'] = $emailAddress;
+                
+                // Try to send email but don't let it block the redirect
                 try {
-                    // Send verification email
-                    sendEmail($connection, $emailAddress, $subject, $body);
-                   
-                    // Set session email for verification
-                    $_SESSION['verification_email'] = $emailAddress;
-                   
-                    $stmt->close();
-                    // Redirect to verification page
-                    header("Location: verifyEmail.php");
-                    exit();
+                    @sendEmail($connection, $emailAddress, $subject, $body);
                 } catch (Exception $e) {
-                    // If email sending fails, delete the pending verification entry
-                    $deleteStmt = $connection->prepare("DELETE FROM tbl_pending_verif WHERE email_address = ?");
-                    $deleteStmt->bind_param("s", $emailAddress);
-                    $deleteStmt->execute();
-                    $deleteStmt->close();
-                   
-                    $errors[] = "Failed to send verification email. Please try again.";
+                    // Log error but continue with redirect
+                    error_log("Email sending failed: " . $e->getMessage());
                 }
-                $stmt->close();
+                
+                ob_end_clean();
+                header("Location: verifyEmail.php");
+                exit();
             } else {
                 $errors[] = "Registration failed. Please try again.";
                 $stmt->close();
@@ -187,6 +177,10 @@
     throw new Exception("Failed to generate a unique OTP after $maxAttempts attempts");
 }
 
+    $pageTitle = 'GAKUMON — Sign up';
+    $pageCSS = 'CSS/desktop/signupStyle.css';
+    $pageJS = 'JS/desktop/signupScript.js';
+    include 'include/header.php';
 ?>
 
 <!-- <div class="transition-overlay"></div> -->
