@@ -2,7 +2,7 @@
 session_start();
 
 $pageTitle = 'GAKUMON — Admin Dashboard';
-$pageCSS = 'CSS/desktop/kanriDashboardStyle.css';
+$pageCSS = 'CSS/desktop/adminManagementStyle.css';
 $pageJS = 'JS/desktop/merged-admin_all.js';
 
 include 'include/header.php';
@@ -124,20 +124,6 @@ $recent_activity = $result->fetch_all(MYSQLI_ASSOC);
 include 'include/desktopKanriNav.php';
 ?>
 
-<!-- Mobile Warning Modal -->
-<div class="mobile-warning-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>🚫 Mobile Device Detected</h3>
-        </div>
-        <div class="modal-body">
-            <p>This admin dashboard is optimized for desktop viewing. Please switch to a desktop device for the best experience.</p>
-        </div>
-        <div class="modal-footer">
-            <button onclick="redirectToIndex()" class="btn-understand">OK, I understand</button>
-        </div>
-    </div>
-</div>
 
 <!-- Main Layout -->
 <style>
