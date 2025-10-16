@@ -437,11 +437,11 @@ body {
 	display: flex;
 	flex-direction: column;
 	box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
-	z-index: 1000;
+	z-index: 10000;
 	position: fixed;
 	left: 0;
 	top: 0;
-	overflow-y: fixed;
+	overflow-y: auto;
 }
 
 /* ===== NAVIGATION STYLES ===== */
