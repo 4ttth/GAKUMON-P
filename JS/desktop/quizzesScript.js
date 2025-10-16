@@ -36,15 +36,13 @@ const lessonsMyPlusOrphans = (() => {
 })();
 
 function wireQuizLinks(lesson) {
-  const base = `${window.location.origin}/GAKUMON/`;
-
   let href;
   if (lesson.is_orphan) {
     // Standalone quiz: no lesson_id — link directly to quiz by quiz_id
-    href = `${base}quiz.php?quiz_id=${encodeURIComponent(lesson.id)}`;
+    href = `quiz.php?quiz_id=${encodeURIComponent(lesson.id)}`;
   } else {
     // Normal lesson-linked quiz
-    href = `${base}quiz.php?lesson_id=${encodeURIComponent(lesson.id)}`;
+    href = `quiz.php?lesson_id=${encodeURIComponent(lesson.id)}`;
   }
 
   // apply to all known "Take Quiz" buttons in the modal
@@ -57,7 +55,7 @@ function wireQuizLinks(lesson) {
 
 // For Back Button
 function absUrl(path) {
-  return window.location.origin + '/GAKUMON/' + path.replace(/^\//, '');
+  return path.replace(/^\//, '');
 }
 function saveQuizReturnState(reopen) {
   const state = {
@@ -885,37 +883,37 @@ document.addEventListener("DOMContentLoaded", () => {
         // Add fresh redirect-only handler
         clone.style.cursor = "pointer";
         clone.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopImmediatePropagation();
+          e.preventDefault();
+          e.stopImmediatePropagation();
 
-            const title = clone.querySelector(".lesson-title")?.textContent || "";
-            const match = title.match(/Quiz\s?#?(\d+)/i);
-            const quizId = match ? match[1] : clone.dataset.id;
+          const title = clone.querySelector(".lesson-title")?.textContent || "";
+          const match = title.match(/Quiz\s?#?(\d+)/i);
+          const quizId = match ? match[1] : clone.dataset.id;
 
-            // Try to find the lesson object; if not found, build a minimal one
-            let lessonObj = (lessons?.all || []).find(L => String(L.id) === String(quizId));
-            if (!lessonObj) {
-                lessonObj = {
-                id: quizId,
-                is_orphan: true,
-                title: title || `Quiz #${quizId}`,
-                topic: 'Standalone Quiz',
-                duration: '',
-                difficulty: '',
-                long_desc: '',
-                objectives: []
-                };
-            } else {
-                lessonObj = {
-                ...lessonObj,
-                is_orphan: true,
-                topic: lessonObj.topic || 'Standalone Quiz',
-                objectives: lessonObj.objectives || []
-                };
-            }
+          // Let the lesson modal handle the routing
+          let lessonObj = (lessons?.all || []).find(L => String(L.id) === String(quizId));
+          if (!lessonObj) {
+              lessonObj = {
+                  id: quizId,
+                  is_orphan: true,
+                  title: title || `Quiz #${quizId}`,
+                  topic: 'Standalone Quiz',
+                  duration: '',
+                  difficulty: '',
+                  long_desc: '',
+                  objectives: []
+              };
+          } else {
+              lessonObj = {
+                  ...lessonObj,
+                  is_orphan: true,
+                  topic: lessonObj.topic || 'Standalone Quiz',
+                  objectives: lessonObj.objectives || []
+              };
+          }
 
-            openLessonModal(lessonObj);
-            });
+          openLessonModal(lessonObj);
+      });
       }
     });
   }, 500); // allow DOM + events to finish attaching first
