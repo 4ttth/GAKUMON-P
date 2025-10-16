@@ -126,7 +126,6 @@
             } else {
                 $errors[] = "Registration failed. Please try again.";
             }
-            $stmt->close();
         }
     }
     function generateUniqueOTP($connection, $seed = null, $tableName = 'tbl_pending_verif', $columnName = 'verif_code') {
