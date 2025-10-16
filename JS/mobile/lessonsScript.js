@@ -44,7 +44,7 @@ function absUrl(path) {
 
 function wireQuizLinks(lesson) {
   selectedLessonId = lesson.id;
-  const quizUrl = absUrl(`quiz.php?lesson_id=${encodeURIComponent(selectedLessonId)}`);
+  const quizUrl = absUrl(`/quiz.php?lesson_id=${encodeURIComponent(selectedLessonId)}`);
 
   const ids = ['take-quiz-link', 'take-quiz-link-2']; // two buttons on this page
   ids.forEach((id) => {
@@ -949,7 +949,7 @@ function openLessonModal(lesson) {
         const origin = window.location.pathname;
         quickQuizBtn.setAttribute(
         'href',
-        absUrl(`quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
+        absUrl(`/quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
         );
         quickQuizBtn.addEventListener('click', () => {
         saveQuizReturnState({ type: 'lesson', lessonId: lesson.id });
@@ -1073,7 +1073,7 @@ function openMaterialsModal(lesson, materialType) {
     const origin = window.location.pathname; 
     quizLink.setAttribute(
         'href',
-        absUrl(`quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
+        absUrl(`/quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
     );
     quizLink.addEventListener('click', () => {
         saveQuizReturnState({ type: 'materials', lessonId: lesson.id, materialType });
@@ -1137,7 +1137,7 @@ document.addEventListener('click', (e) => {
   if (!href) {
     e.preventDefault();
     if (selectedLessonId) {
-      window.location.assign(absUrl(`quiz.php?lesson_id=${encodeURIComponent(selectedLessonId)}`));
+      window.location.assign(absUrl(`/quiz.php?lesson_id=${encodeURIComponent(selectedLessonId)}`));
     }
   }
 }, { passive: true });

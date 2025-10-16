@@ -745,7 +745,7 @@ function openMaterialsModal(lesson, materialType) {
     const origin = window.location.pathname; //
     quizLink.setAttribute(
         'href',
-        absUrl(`quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
+        absUrl(`/quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
     );
 
     // Save state before navigating so we can restore the page exactly
@@ -758,13 +758,13 @@ function openMaterialsModal(lesson, materialType) {
     // // ✅ set the quiz link for this lesson (the anchor is in the materials modal footer)
     // const quizLink = document.getElementById('take-quiz-link');
     // if (quizLink) {
-    // quizLink.setAttribute('href', `quiz.php?lesson_id=${lesson.id}`);
+    // quizLink.setAttribute('href', `/quiz.php?lesson_id=${lesson.id}`);
 
     // // If any global handler might block anchors, force navigation:
     // quizLink.addEventListener('click', function (e) {
     //     // If you suspect preventDefault elsewhere, uncomment the next two lines:
     //     // e.preventDefault();
-    //     // window.location.href = `quiz.php?lesson_id=${lesson.id}`;
+    //     // window.location.href = `/quiz.php?lesson_id=${lesson.id}`;
     // }, { once: true });
     // }
 

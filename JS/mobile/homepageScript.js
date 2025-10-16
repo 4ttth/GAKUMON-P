@@ -768,7 +768,7 @@ function openMaterialsModal(lesson, materialType) {
         const origin = window.location.pathname;
         quizLink.setAttribute(
             'href',
-            absUrl(`quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
+            absUrl(`/quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
         );
 
         // Save state before navigating so we can restore the page exactly

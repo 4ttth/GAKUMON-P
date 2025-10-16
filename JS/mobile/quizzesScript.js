@@ -148,10 +148,10 @@ function wireQuizLinks(lesson) {
   let href;
   if (lesson.is_orphan) {
     // Standalone quiz: no lesson_id — link directly to quiz by quiz_id
-    href = `${base}quiz.php?quiz_id=${encodeURIComponent(lesson.id)}`;
+    href = `${base}/quiz.php?quiz_id=${encodeURIComponent(lesson.id)}`;
   } else {
     // Normal lesson-linked quiz
-    href = `${base}quiz.php?lesson_id=${encodeURIComponent(lesson.id)}`;
+    href = `${base}/quiz.php?lesson_id=${encodeURIComponent(lesson.id)}`;
   }
 
   // apply to all known "Take Quiz" buttons in the modal
@@ -642,14 +642,14 @@ function openLessonModal(lesson) {
             newBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                window.location.href = `quiz.php?quiz_id=${encodeURIComponent(lesson.id)}`;
+                window.location.href = `/quiz.php?quiz_id=${encodeURIComponent(lesson.id)}`;
             });
         } else {
             // 🔹 Normal lesson-linked quiz
             newBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                window.location.href = `quiz.php?lesson_id=${encodeURIComponent(lesson.id)}`;
+                window.location.href = `/quiz.php?lesson_id=${encodeURIComponent(lesson.id)}`;
             });
         }
     }
@@ -801,7 +801,7 @@ function openMaterialsModal(lesson, materialType) {
     const origin = window.location.pathname; 
     quizLink.setAttribute(
         'href',
-        absUrl(`quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
+        absUrl(`/quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
     );
     quizLink.addEventListener('click', () => {
         saveQuizReturnState({ type: 'materials', lessonId: lesson.id, materialType });
