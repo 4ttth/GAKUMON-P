@@ -2,7 +2,7 @@
 session_start();
 
 $pageTitle = 'GAKUMON — Admin Dashboard';
-$pageCSS = 'CSS/desktop/kanri-merged.css';
+$pageCSS = 'CSS/desktop/kanriDashboardStyle.css';
 $pageJS = 'JS/desktop/merged-admin_all.js';
 
 include 'include/header.php';
@@ -140,6 +140,9 @@ include 'include/desktopKanriNav.php';
 </div>
 
 <!-- Main Layout -->
+<style>
+.side-navbar { z-index: 10000 !important; }
+</style>
 <div class="main-layout">
     <div class="content-area">
         <div class="container-fluid page-content">
