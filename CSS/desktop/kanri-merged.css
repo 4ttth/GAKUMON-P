@@ -373,26 +373,6 @@
     box-shadow: 0 0 0 3px rgba(129, 18, 18, 0.1);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .mobile-warning-modal {
-        display: flex;
-    }
-    
-    .content-area {
-        display: none;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .charts-container {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===== END: kanriDashboardStyle.css ===== */
 
 /* ===== BEGIN: kanriDBStyle.css ===== */
 /* ===== FONT IMPORTS ===== */
@@ -461,7 +441,7 @@ body {
 	position: fixed;
 	left: 0;
 	top: 0;
-	overflow-y: auto;
+	overflow-y: fixed;
 }
 
 /* ===== NAVIGATION STYLES ===== */
