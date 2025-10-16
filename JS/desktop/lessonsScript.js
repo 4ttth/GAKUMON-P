@@ -35,7 +35,7 @@ function saveQuizReturnState(reopen) {
 let selectedLessonId = null;
 
 function absUrl(path) {
-  return window.location.origin + '/GAKUMON/' + path.replace(/^\//, '');
+  return window.location.origin + path.replace(/^\//, '');
 }
 
 function wireQuizLinks(lesson) {
