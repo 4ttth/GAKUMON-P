@@ -1018,3 +1018,60 @@ function updateAnalyticsData(period) {
         location.reload();
     }, 500);
 }
+
+// ---- Account dropdown compat shim (no HTML edits needed) ----
+document.addEventListener('DOMContentLoaded', () => {
+  // Try the IDs your script expects first
+  let btn  = document.getElementById('accountDropdownBtn');
+  let menu = document.getElementById('accountDropdown');
+
+  // If not found, fall back to common patterns inside the desktop nav
+  if (!btn) {
+    btn =
+      document.querySelector('[data-account-btn]') ||
+      document.querySelector('.kanri-account-btn') ||
+      document.querySelector('.account-btn') ||
+      document.querySelector('.user-menu-toggle') ||
+      document.querySelector('.profile-toggle') ||
+      document.querySelector('.dropdown-toggle.account') ||
+      document.querySelector('.desktopKanriNav .dropdown-toggle');
+  }
+  if (!menu && btn) {
+    // Prefer the next dropdown-ish sibling, else any dropdown within the same container
+    const sib = btn.nextElementSibling;
+    if (sib && (sib.classList.contains('dropdown-menu') || sib.classList.contains('account-dropdown'))) {
+      menu = sib;
+    } else {
+      menu = btn.parentElement?.querySelector('.dropdown-menu, .account-dropdown');
+    }
+  }
+
+  // If we still don't have both, nothing to wire up
+  if (!btn || !menu) return;
+
+  // Prevent double binding if your original init already ran
+  if (!btn.__accountWired) {
+    btn.__accountWired = true;
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      menu.classList.toggle('show');   // Bootstrap-style
+      menu.classList.toggle('open');   // in case your CSS uses 'open'
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target) && e.target !== btn) {
+        menu.classList.remove('show');
+        menu.classList.remove('open');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        menu.classList.remove('show');
+        menu.classList.remove('open');
+      }
+    });
+  }
+});
