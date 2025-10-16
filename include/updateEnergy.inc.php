@@ -45,8 +45,9 @@ $now = time();
 // Calculate hours since last update
 $hoursPassed = max(0, ($now - $lastUpdate) / 3600);
 
-// Only apply decay if time has actually passed
-if ($hoursPassed > 0) {
+// Only apply decay if time has actually passed AND if more than 10 seconds have elapsed
+// This prevents immediate decay after feeding/updating energy
+if ($hoursPassed > 0.003) { // 0.003 hours = ~10 seconds threshold
     // Calculate decay (4.17% per hour)
     $decayPerHour = 4.17;
     $decay = $hoursPassed * $decayPerHour;

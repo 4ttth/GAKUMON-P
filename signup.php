@@ -111,22 +111,24 @@
                     // Set session email for verification
                     $_SESSION['verification_email'] = $emailAddress;
                    
+                    $stmt->close();
                     // Redirect to verification page
                     header("Location: verifyEmail.php");
                     exit();
                 } catch (Exception $e) {
                     // If email sending fails, delete the pending verification entry
-                    $stmt = $connection->prepare("DELETE FROM tbl_pending_verif WHERE email_address = ?");
-                    $stmt->bind_param("s", $emailAddress);
-                    $stmt->execute();
-                    $stmt->close();
+                    $deleteStmt = $connection->prepare("DELETE FROM tbl_pending_verif WHERE email_address = ?");
+                    $deleteStmt->bind_param("s", $emailAddress);
+                    $deleteStmt->execute();
+                    $deleteStmt->close();
                    
                     $errors[] = "Failed to send verification email. Please try again.";
                 }
+                $stmt->close();
             } else {
                 $errors[] = "Registration failed. Please try again.";
+                $stmt->close();
             }
-            $stmt->close();
         }
     }
     function generateUniqueOTP($connection, $seed = null, $tableName = 'tbl_pending_verif', $columnName = 'verif_code') {
