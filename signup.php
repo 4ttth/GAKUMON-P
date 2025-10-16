@@ -36,98 +36,62 @@
         $stmt->close();
 
         // Check if email exists in tbl_pending_verif
-        $stmt = $connection->prepare("SELECT * FROM tbl_pending_verif WHERE email_address = ?");
-        $stmt->bind_param("s", $emailAddress);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if($result->num_rows > 0) {
-            $errors[] = "Email address already in verification process.";
-        }
-        $stmt->close();
+        // Prepare Statement for pending verification
+$stmt = $connection->prepare("INSERT INTO tbl_pending_verif (first_name, last_name, username, email_address, pass, verif_code) VALUES (?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("ssssss", $firstName, $lastName, $username, $emailAddress, $hashedPass, $otp);
 
-        // Username Validation
-        if(!preg_match('/^[a-zA-Z0-9]{4,20}$/', $username)) {
-            $errors[] = "Username must be 4-20 alphanumeric characters.";
+if($stmt->execute()) {
+    // Prepare email content
+    $subject = "GAKUMON - Email Verification";
+    $body = "
+        <h2>Welcome to GAKUMON!</h2>
+        <p>Hello $firstName,</p>
+        <p>Your verification code is: <strong>$otp</strong></p>
+        <p>Please enter this code to verify your email address.</p>
+        <p>If you didn't create an account, please ignore this email.</p>
+    ";
+
+    try {
+        // Send verification email
+        sendEmail($connection, $emailAddress, $subject, $body);
+       
+        // Set session email for verification
+        $_SESSION['verification_email'] = $emailAddress;
+       
+        // Redirect to verification page
+        header("Location: verifyEmail.php");
+        exit();
+    } catch (Exception $e) {
+        // Use a DIFFERENT variable ($delStmt) so we don't overwrite $stmt
+        $delStmt = $connection->prepare("DELETE FROM tbl_pending_verif WHERE email_address = ?");
+        if ($delStmt) {
+            $delStmt->bind_param("s", $emailAddress);
+            $delStmt->execute();
+            $delStmt->close();
         } else {
-            // Check if username exists in tbl_user
-            $stmt = $connection->prepare("SELECT 1 FROM tbl_user WHERE username = ?");
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if($result->num_rows > 0) {
-                $errors[] = "Username already exists.";
-            }
-            $stmt->close();
-
-            // Check if username exists in tbl_pending_verif
-            $stmt = $connection->prepare("SELECT 1 FROM tbl_pending_verif WHERE username = ?");
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if($result->num_rows > 0) {
-                $errors[] = "Username is already in verification process.";
-            }
-            $stmt->close();
+            // optionally log $connection->error
+            error_log("Failed to prepare DELETE stmt in signup catch: " . $connection->error);
         }
+       
+        $errors[] = "Failed to send verification email. Please try again.";
+    }
+} else {
+    $errors[] = "Registration failed. Please try again.";
+}
 
+// Close the main INSERT statement if it is a valid statement (and not already closed)
+if (isset($stmt) && $stmt instanceof mysqli_stmt) {
+    // If it hasn't been closed already, close it.
+    // There's no direct property to check "closed", but calling close on an already closed stmt throws,
+    // so we suppress warnings and handle exceptions safely.
+    try {
+        $stmt->close();
+    } catch (Throwable $closeEx) {
+        // ignore: already closed — or log if you want
+        error_log("Stmt close skipped: " . $closeEx->getMessage());
+    }
+}
 
-        // Password Validations
-        // Length and Case Check
-        if (strlen($pass) < 8) {
-            $errors[] = "Password must be at least 8 characters.";
-        } elseif (!preg_match('/[A-Z]/', $pass) || !preg_match('/[a-z]/', $pass)) {
-            $errors[] = "Password must contain both uppercase and lowercase letters.";
-        }
-
-        // Confirm Password Check
-        if ($pass !== $confirmPassword) {
-            $errors[] = "Passwords do not match.";
-        }
-
-        // If no errors, proceed with registration
-        if(empty($errors)) {
-            // Hash the password
-            $hashedPass = password_hash($pass, PASSWORD_DEFAULT);
-
-            // Prepare Statement for pending verification
-            $stmt = $connection->prepare("INSERT INTO tbl_pending_verif (first_name, last_name, username, email_address, pass, verif_code) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssss", $firstName, $lastName, $username, $emailAddress, $hashedPass, $otp);
-
-            if($stmt->execute()) {
-                // Prepare email content
-                $subject = "GAKUMON - Email Verification";
-                $body = "
-                    <h2>Welcome to GAKUMON!</h2>
-                    <p>Hello $firstName,</p>
-                    <p>Your verification code is: <strong>$otp</strong></p>
-                    <p>Please enter this code to verify your email address.</p>
-                    <p>If you didn't create an account, please ignore this email.</p>
-                ";
-
-                try {
-                    // Send verification email
-                    sendEmail($connection, $emailAddress, $subject, $body);
-                   
-                    // Set session email for verification
-                    $_SESSION['verification_email'] = $emailAddress;
-                   
-                    // Redirect to verification page
-                    header("Location: verifyEmail.php");
-                    exit();
-                } catch (Exception $e) {
-                    // If email sending fails, delete the pending verification entry
-                    $stmt = $connection->prepare("DELETE FROM tbl_pending_verif WHERE email_address = ?");
-                    $stmt->bind_param("s", $emailAddress);
-                    $stmt->execute();
-                    $stmt->close();
-                   
-                    $errors[] = "Failed to send verification email. Please try again.";
-                }
-            } else {
-                $errors[] = "Registration failed. Please try again.";
-            }
-            $stmt->close();
-        }
     }
     function generateUniqueOTP($connection, $seed = null, $tableName = 'tbl_pending_verif', $columnName = 'verif_code') {
     // Set the seed for randomization if provided
