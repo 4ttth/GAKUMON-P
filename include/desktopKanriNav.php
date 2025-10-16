@@ -102,28 +102,28 @@
                 <div class="dropdown-username"><?php echo $_SESSION['sUser'] ?? 'Administrator'; ?></div>
             </div>
             
-            <div class="dropdown-divider"></div>
+            <!-- <div class="dropdown-divider"></div> -->
             
             <!-- <a href="system_settings.php" class="dropdown-item">
                 <i class="bi bi-gear"></i>
                 <span>Settings</span>
             </a> -->
             
-            <div class="dropdown-divider"></div>
+            <!-- <div class="dropdown-divider"></div> -->
             
             <!-- <a href="faqs.php" class="dropdown-item">
                 <i class="bi bi-question-circle"></i>
                 <span>FAQs</span>
             </a> -->
             
-            <div class="dropdown-divider"></div>
+            <!-- <div class="dropdown-divider"></div> -->
             
             <!-- <a href="contactUs.php" class="dropdown-item">
                 <i class="bi bi-envelope"></i>
                 <span>Contact Us</span>
             </a> -->
             
-            <div class="dropdown-divider"></div>
+            <!-- <div class="dropdown-divider"></div> -->
             
             <!-- <a href="#" class="dropdown-item">
                 <i class="bi bi-file-text"></i>
