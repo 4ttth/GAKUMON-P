@@ -17,6 +17,7 @@
     // Set active class based on current page
     switch($currentPage) {
         case 'kanriDashboard.php':
+        case 'admin_dashboard.php':
             $activeDashboard = 'active';
             break;
         // case 'kanriLessonManagement.php':
@@ -57,7 +58,7 @@
     
     <!-- Navigation Items -->
     <div class="nav-items">
-        <a href="kanriDashboard.php" class="nav-item <?php echo $activeDashboard; ?>">
+        <a href="admin_dashboard.php" class="nav-item <?php echo $activeDashboard; ?>">
             <span class="nav-text">Dashboard</span>
         </a>
         <!-- <a href="lesson_management.php" class="nav-item <?php echo $activeLessonManagement; ?>">
