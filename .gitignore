@@ -1,4 +1,5 @@
 config.php
+sendEmail.inc.php
 kanri/*
 adminDashboardScript.js
 adminManagementScript.js
