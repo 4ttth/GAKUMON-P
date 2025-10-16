@@ -164,7 +164,7 @@ include 'include/desktopKanriNav.php';
                         <p>Total Lessons</p>
                         <small>+<?php echo $stats['lessons']['new_lessons_30d']; ?> this month</small>
                     </div>
-                    <a href="#lesson-management" class="stat-action"><i class="fa-info-circle"></i></a>
+                    <a href="#lesson-management" class="stat-action"><i class="fas fa-info-circle"></i></a>
                 </div>
 
                 <div class="stat-card">
@@ -176,7 +176,7 @@ include 'include/desktopKanriNav.php';
                         <p>Total Revenue</p>
                         <small>₱<?php echo number_format($stats['revenue']['earnings_30d'], 2); ?> this month</small>
                     </div>
-                    <a href="#creator-management" class="stat-action"><i class="fa-info-circle"></i></a>
+                    <a href="#creator-management" class="stat-action"><i class="fas fa-info-circle"></i></a>
                 </div>
 
                 <div class="stat-card">
@@ -188,7 +188,7 @@ include 'include/desktopKanriNav.php';
                         <p>Gakucoins Supply</p>
                         <small>In circulation</small>
                     </div>
-                    <a href="#shop-management" class="stat-action"><i class="fa-info-circle"></i></a>
+                    <a href="#shop-management" class="stat-action"><i class="fas fa-info-circle"></i></a>
                 </div>
             </div>
 
