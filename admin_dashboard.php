@@ -127,7 +127,9 @@ include 'include/desktopKanriNav.php';
 
 <!-- Main Layout -->
 <style>
-.side-navbar { z-index: 10000 !important; }
+.content-area { z-index: 1 !important; position: relative !important; }
+.side-navbar { z-index: 10000 !important; pointer-events: auto !important; }
+.nav-item { pointer-events: auto !important; }
 </style>
 <div class="main-layout">
     <div class="content-area">
