@@ -1095,4 +1095,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-<?php include 'include/kanriFooter.php'; ?>
+<?php include 'include/footer.php'; ?>
