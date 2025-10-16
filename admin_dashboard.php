@@ -1090,69 +1090,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Navbar scroll highlighting
-function updateNavbarHighlight() {
-    const sections = [
-        { id: 'stats-grid', navText: 'Dashboard' },
-        { id: 'user-management', navText: 'Account Management' },
-        { id: 'lesson-management', navText: 'Materials Moderation' },
-        { id: 'quiz-management', navText: 'Materials Moderation' },
-        { id: 'creator-management', navText: 'Gakusensei Verification' },
-        { id: 'shop-management', navText: 'Pet Customization' },
-        { id: 'system-management', navText: 'Activity Logs' }
-    ];
-    
-    let currentSection = 'Dashboard';
-    const scrollPosition = window.scrollY + 100;
-    
-    // Find current section based on scroll position
-    for (let i = sections.length - 1; i >= 0; i--) {
-        const element = document.getElementById(sections[i].id) || document.querySelector('.' + sections[i].id);
-        if (element && element.offsetTop <= scrollPosition) {
-            currentSection = sections[i].navText;
-            break;
-        }
-    }
-    
-    // Remove active class from all nav items
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active', 'scroll-active');
-    });
-    
-    // Add active class to current section
-    document.querySelectorAll('.nav-item').forEach(item => {
-        const navText = item.querySelector('.nav-text')?.textContent;
-        if (navText === currentSection) {
-            item.classList.add('scroll-active');
-        }
-    });
-}
 
-// Add scroll event listener
-window.addEventListener('scroll', updateNavbarHighlight);
-
-// Initial call
-updateNavbarHighlight();
 </script>
 
-<style>
-/* Scroll-based navbar highlighting */
-.nav-item.scroll-active {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-left: 3px solid #fff !important;
-    color: #fff !important;
-}
 
-.nav-item.scroll-active .nav-text {
-    color: #fff !important;
-    font-weight: 600 !important;
-}
-
-.nav-item:hover,
-.nav-item.scroll-active {
-    transform: translateX(5px);
-    transition: all 0.3s ease;
-}
-</style>
 
 <?php include 'include/kanriFooter.php'; ?>
