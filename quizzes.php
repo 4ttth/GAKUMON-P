@@ -620,7 +620,7 @@
 
 <script>
   // Set this if your include path differs on this page
-  window.LIMITS_ENDPOINT = '/GAKUMON/include/creationLimits.inc.php';
+  window.LIMITS_ENDPOINT = '/include/creationLimits.inc.php';
 </script>
 
 <script>

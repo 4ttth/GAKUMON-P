@@ -23,7 +23,7 @@ window.__QUIZ_REDIRECTING__ = false;
 
 // For Back Button
 function absUrl(path) {
-  return window.location.origin + '/GAKUMON/' + path.replace(/^\//, '');
+  return window.location.origin + path.replace(/^\//, '');
 }
 function saveQuizReturnState(reopen) {
   const state = {
@@ -39,7 +39,7 @@ function saveQuizReturnState(reopen) {
 let selectedLessonId = null;
 
 function absUrl(path) {
-  return window.location.origin + '/GAKUMON/' + path.replace(/^\//, '');
+  return window.location.origin + path.replace(/^\//, '');
 }
 
 function wireQuizLinks(lesson) {
@@ -214,7 +214,7 @@ function initTopicSelection() {
 async function canCreateAnotherLesson() {
   try {
     // Use your site root; absUrl works too, but a direct path is fine
-    const res = await fetch('/GAKUMON/include/creationLimits.inc.php?check=lesson', {
+    const res = await fetch('/include/creationLimits.inc.php?check=lesson', {
       credentials: 'same-origin',
       cache: 'no-store'
     });
@@ -515,7 +515,7 @@ async function saveLesson(mode) {
   }
 
   try {
-    const res = await fetch('/GAKUMON/include/lessonCreate.inc.php', { method: 'POST', body: fd });
+    const res = await fetch('/include/lessonCreate.inc.php', { method: 'POST', body: fd });
     const text = await res.text(); // grab raw
     let data;
     try { data = JSON.parse(text); } catch { data = null; }
@@ -925,7 +925,7 @@ function openLessonModal(lesson) {
     if (!Number.isInteger(lessonId) || lessonId <= 0) {
     console.error('Missing/invalid lesson_id for objectives:', lesson);
     } else {
-    fetch(`/GAKUMON/include/lessonObjectives.inc.php?lesson_id=${lessonId}`)
+    fetch(`/include/lessonObjectives.inc.php?lesson_id=${lessonId}`)
         .then(r => r.ok ? r.json() : Promise.reject(r))
         .then(data => {
         if (data?.ok) {
@@ -1070,7 +1070,7 @@ function openMaterialsModal(lesson, materialType) {
     // For Back Button
     const quizLink = document.getElementById('take-quiz-link');
     if (quizLink) {
-    const origin = window.location.pathname; // "/GAKUMON/lessons.php"
+    const origin = window.location.pathname; 
     quizLink.setAttribute(
         'href',
         absUrl(`quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
@@ -1104,7 +1104,7 @@ function closeMaterialsModal() {
 // Update the viewMaterial function to handle the file paths
 function viewMaterial(url, fileType) {
     // Construct the full URL if it's a relative path
-    const baseUrl = window.location.origin + '/GAKUMON/';
+    const baseUrl = window.location.origin;
     const fullUrl = url.startsWith('http') ? url : baseUrl + url;
     
     console.log('Opening file:', fullUrl); // Debug log

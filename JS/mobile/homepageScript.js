@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ---- shared helpers for quiz return ----
 function absUrl(path) {
-    return window.location.origin + '/GAKUMON/' + path.replace(/^\//, '');
+    return window.location.origin + path.replace(/^\//, '');
 }
 
 function saveQuizReturnState(reopen) {
@@ -120,7 +120,7 @@ async function loadEnrollments() {
             JSON.parse(cached).forEach(id => enrolledSet.add(Number(id)));
         }
 
-        const res = await fetch('/GAKUMON/include/getEnrollments.inc.php', {
+        const res = await fetch('/include/getEnrollments.inc.php', {
         credentials: 'include'
         });
         const data = await res.json();
@@ -448,7 +448,7 @@ function openLessonModal(lesson) {
     if (!Number.isInteger(lessonId) || lessonId <= 0) {
         console.error('Missing/invalid lesson_id for objectives:', lesson);
     } else {
-        fetch(`/GAKUMON/include/lessonObjectives.inc.php?lesson_id=${lessonId}`)
+        fetch(`/include/lessonObjectives.inc.php?lesson_id=${lessonId}`)
             .then(r => r.ok ? r.json() : Promise.reject(r))
             .then(data => {
                 if (data?.ok) {
@@ -801,7 +801,7 @@ function closeMaterialsModal() {
 // Function to view material
 function viewMaterial(url, fileType) {
     // Construct the full URL if it's a relative path
-    const baseUrl = window.location.origin + '/GAKUMON/';
+    const baseUrl = window.location.origin;
     const fullUrl = url.startsWith('http') ? url : baseUrl + url;
     
     console.log('Opening file:', fullUrl);

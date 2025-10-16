@@ -57,7 +57,7 @@ function computeReturnUrl() {
   }
 
   // Fallback
-  return '/GAKUMON/homepage.php';
+  return '/homepage.php';
 }
 const RETURN_URL = computeReturnUrl();
 
@@ -66,7 +66,7 @@ document.addEventListener('click', (e) => {
   const backBtn = e.target.closest('.backLessons');
   if (!backBtn) return;
   e.preventDefault();
-  window.location.href = '/GAKUMON/lessons.php';
+  window.location.href = '/lessons.php';
 }, { passive: false });
 
 // Quiz state
@@ -297,7 +297,7 @@ function showResults() {
     const backLessonBtns = document.querySelectorAll('.backLessons');
     backLessonBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        window.location.href = '/GAKUMON/lessons.php';
+        window.location.href = '/lessons.php';
     }, { once: true });
     });
     
@@ -424,7 +424,7 @@ function showResults() {
     document.querySelectorAll('.backLessons').forEach((btn) => {
         btn.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.href = '/GAKUMON/lessons.php';
+        window.location.href = '/lessons.php';
         }, { once: true });
     });
     })();

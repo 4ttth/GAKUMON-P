@@ -238,7 +238,7 @@ function move_and_record_upload(
   }
 
   // Project root (…/GAKUMON), then IMG/<subFolder>
-  $root   = realpath(__DIR__ . '/..');   // C:\xampp\htdocs\GAKUMON
+  $root   = realpath(__DIR__ . '/');   // C:\xampp\htdocs\GAKUMON
   $imgDir = $root . DIRECTORY_SEPARATOR . 'IMG';
   ensure_dir($imgDir);
 

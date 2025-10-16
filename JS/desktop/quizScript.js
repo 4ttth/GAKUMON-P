@@ -266,7 +266,7 @@ function showResults() {
     const backLessonBtns = document.querySelectorAll('.backLessons');
     backLessonBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        window.location.href = '/GAKUMON/lessons.php';
+        window.location.href = '/lessons.php';
     }, { once: true });
     });
     

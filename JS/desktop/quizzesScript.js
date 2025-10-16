@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function canCreateAnotherQuiz() {
   const url = (typeof window.LIMITS_ENDPOINT === 'string' && window.LIMITS_ENDPOINT)
     ? window.LIMITS_ENDPOINT
-    : '/GAKUMON/include/creationLimits.inc.php';
+    : '/include/creationLimits.inc.php';
 
   try {
     const res = await fetch(`${url}?check=quiz`, { credentials: 'same-origin', cache: 'no-store' });
@@ -632,7 +632,7 @@ function openLessonModal(lesson) {
     if (!Number.isInteger(lessonId) || lessonId <= 0) {
     console.error('Missing/invalid lesson_id for objectives:', lesson);
     } else {
-    fetch(`/GAKUMON/include/lessonObjectives.inc.php?lesson_id=${lessonId}`)
+    fetch(`include/lessonObjectives.inc.php?lesson_id=${lessonId}`)
         .then(r => r.ok ? r.json() : Promise.reject(r))
         .then(data => {
         if (data?.ok) {
@@ -769,7 +769,7 @@ function openMaterialsModal(lesson, materialType) {
     // TRY quizLink
     const quizLink = document.getElementById('take-quiz-link');
     if (quizLink) {
-    const origin = window.location.pathname; // "/GAKUMON/quizzes.php"
+    const origin = window.location.pathname;
     quizLink.setAttribute(
         'href',
         absUrl(`quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
@@ -779,11 +779,6 @@ function openMaterialsModal(lesson, materialType) {
     }, { once: true });
     }
 
-    // const quizLink = document.getElementById('take-quiz-link');
-    // if (quizLink) {
-    //     const base = window.location.origin + '/GAKUMON/'; // avoid relative path issues
-    //     quizLink.setAttribute('href', base + 'quiz.php?lesson_id=' + encodeURIComponent(lesson.id));
-    // }
 
     document.getElementById('materialsModal').classList.add('active');
 }
@@ -801,7 +796,7 @@ function closeMaterialsModal() {
 // Update the viewMaterial function to handle the file paths
 function viewMaterial(url, fileType) {
     // Construct the full URL if it's a relative path
-    const baseUrl = window.location.origin + '/GAKUMON/';
+    const baseUrl = window.location.origin;
     const fullUrl = url.startsWith('http') ? url : baseUrl + url;
     
     console.log('Opening file:', fullUrl); // Debug log

@@ -143,7 +143,7 @@ const lessonsMyPlusOrphans = (() => {
 })();
 
 function wireQuizLinks(lesson) {
-  const base = `${window.location.origin}/GAKUMON/`;
+  const base = `${window.location.origin}`;
 
   let href;
   if (lesson.is_orphan) {
@@ -164,7 +164,7 @@ function wireQuizLinks(lesson) {
 
 // For Back Button
 function absUrl(path) {
-  return window.location.origin + '/GAKUMON/' + path.replace(/^\//, '');
+  return window.location.origin + path.replace(/^\//, '');
 }
 function saveQuizReturnState(reopen) {
   const state = {
@@ -660,7 +660,7 @@ function openLessonModal(lesson) {
     if (!Number.isInteger(lessonId) || lessonId <= 0) {
     console.error('Missing/invalid lesson_id for objectives:', lesson);
     } else {
-    fetch(`/GAKUMON/include/lessonObjectives.inc.php?lesson_id=${lessonId}`)
+    fetch(`/include/lessonObjectives.inc.php?lesson_id=${lessonId}`)
         .then(r => r.ok ? r.json() : Promise.reject(r))
         .then(data => {
         if (data?.ok) {
@@ -798,7 +798,7 @@ function openMaterialsModal(lesson, materialType) {
     // TRY quizLink
     const quizLink = document.getElementById('take-quiz-link');
     if (quizLink) {
-    const origin = window.location.pathname; // "/GAKUMON/quizzes.php"
+    const origin = window.location.pathname; 
     quizLink.setAttribute(
         'href',
         absUrl(`quiz.php?lesson_id=${lesson.id}&from=${encodeURIComponent(origin)}`)
@@ -808,11 +808,6 @@ function openMaterialsModal(lesson, materialType) {
     }, { once: true });
     }
 
-    // const quizLink = document.getElementById('take-quiz-link');
-    // if (quizLink) {
-    //     const base = window.location.origin + '/GAKUMON/'; // avoid relative path issues
-    //     quizLink.setAttribute('href', base + 'quiz.php?lesson_id=' + encodeURIComponent(lesson.id));
-    // }
 
     document.getElementById('materialsModal').classList.add('active');
 }
@@ -830,7 +825,7 @@ function closeMaterialsModal() {
 // Update the viewMaterial function to handle the file paths
 function viewMaterial(url, fileType) {
     // Construct the full URL if it's a relative path
-    const baseUrl = window.location.origin + '/GAKUMON/';
+    const baseUrl = window.location.origin;
     const fullUrl = url.startsWith('http') ? url : baseUrl + url;
     
     console.log('Opening file:', fullUrl); // Debug log
@@ -1023,7 +1018,7 @@ document.addEventListener("DOMContentLoaded", () => {
    ============================================================ */
 
 /* Endpoint (use your existing include path) */
-window.LIMITS_ENDPOINT = window.LIMITS_ENDPOINT || '/GAKUMON/include/creationLimits.inc.php';
+window.LIMITS_ENDPOINT = window.LIMITS_ENDPOINT || 'include/creationLimits.inc.php';
 
 /* Safe Subscribe Modal helpers (only define if missing) */
 if (typeof openSubscribeModal !== 'function') {
