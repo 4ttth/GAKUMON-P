@@ -32,7 +32,7 @@
                 <div class="card">
                     <div class="card-body text-center">
                         <div class="d-grid gap-2">
-                            <a href="signup.php" class="btn btn-lg start">Get Started <span class="arrow"></span></a>
+                            <a href="signup.php" class="btn btn-lg start">Get Started! <span class="arrow"></span></a>
                         </div>
                     </div>
                 </div>
