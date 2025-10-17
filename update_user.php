@@ -1,8 +1,12 @@
 <?php
+
+declare(strict_types=1);
+header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', '0'); // log errors instead of printing to output
+
 session_start();
 require_once 'config/config.php';
 
-header('Content-Type: application/json');
 
 // Check if user is logged in
 if (!isset($_SESSION['sUser'])) {
