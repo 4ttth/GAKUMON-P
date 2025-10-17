@@ -50,63 +50,37 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('action', 'delete_content');
 
         // Send AJAX request to delete content (updated path to include folder)
-        fetch('/include/handle_materials_moderation.php', {
+        fetch('include/handle_materials_moderation.php', {
             method: 'POST',
-            body: formData,
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin'
+            body: formData
         })
-        .then(async (res) => {
-            const ct  = res.headers.get('content-type') || '';
-            const txt = await res.text();
-
-            // 204 (no content) but OK → treat as success
-            if (res.ok && !txt.trim()) return { success: true, message: 'No content' };
-
-            // If JSON, parse safely
-            if (ct.includes('application/json')) {
-                try { return JSON.parse(txt); }
-                catch { throw new Error('Server returned invalid JSON.'); }
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showNotification('Content deleted successfully!', 'success');
+                
+                // Close the modal
+                const modalInstance = bootstrap.Modal.getInstance(modal);
+                modalInstance.hide();
+                
+                // Reload the page to refresh the pagination
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+                
+            } else {
+                throw new Error(data.message || 'Failed to delete content');
             }
-
-            // Non-JSON (likely HTML): detect common cases for a clearer error
-            if (res.redirected || /<html|<br|<b>/i.test(txt)) {
-                if (/login/i.test(txt) || /session/i.test(txt) || res.url.includes('login')) {
-                    throw new Error('Your session expired. Please sign in again.');
-                }
-                // show first part of the HTML to help you debug on DevTools
-                console.warn('Server HTML response (truncated):\n', txt.slice(0, 400));
-                throw new Error(`Server returned HTML instead of JSON (HTTP ${res.status}).`);
-            }
-
-            // Last attempt: try JSON anyway
-            try { return JSON.parse(txt); }
-            catch { throw new Error(`Unexpected response (HTTP ${res.status}): ${txt.slice(0,120)}`); }
         })
-        .then((data) => {
-            if (!data || !data.success) {
-                throw new Error((data && data.message) || 'Failed to delete content');
-            }
-
-            showNotification('Content deleted successfully!', 'success');
-
-            const modalInstance = bootstrap.Modal.getInstance(modal);
-            if (modalInstance) modalInstance.hide();
-
-            setTimeout(() => window.location.reload(), 1000);
-        })
-        .catch((error) => {
+        .catch(error => {
             console.error('Error:', error);
             showNotification('Error deleting content: ' + error.message, 'error');
-
+            
             // Reset button state
             deleteBtn.innerHTML = originalText;
             deleteBtn.disabled = false;
         });
-
     }
 
     // Handle modal show event to pause videos when modal closes

@@ -19,12 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-set_error_handler(function($sev, $msg, $file, $line){
-  http_response_code(500);
-  echo json_encode(['success' => false, 'message' => $msg, 'file' => $file, 'line' => $line]);
-  exit;
-});
-
 // Get and validate form data
 $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : null;
 $first_name = isset($_POST['first_name']) ? trim($_POST['first_name']) : null;
