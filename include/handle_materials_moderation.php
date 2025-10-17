@@ -5,9 +5,16 @@ header('Content-Type: application/json; charset=utf-8');
 ob_start();
 session_start();
 
+ini_set('display_errors', '0');           // never print notices/warnings to output
+ini_set('log_errors', '1');               // send to error_log instead
+
 // Use an absolute path so includes never fail silently
 require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../include/helpers/admin_audit.php';  // <-- make it available
+// Load logger safely (no fatal if missing)
+$logger = __DIR__ . '/../include/helpers/admin_audit.php';
+if (is_file($logger)) {
+    require_once $logger;
+}
 
 // Always return JSON; block PHP warnings from leaking into the response
 header('Content-Type: application/json; charset=utf-8');
@@ -55,6 +62,11 @@ if (!function_exists('logAdminAction')) {
         return true;
     }
 }
+
+// Convert warnings/notices to exceptions we can JSONify
+set_error_handler(function($severity, $message, $file, $line) {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
 
 try {
     // Basic request validation
@@ -166,8 +178,7 @@ try {
         );
     }
 
-    echo json_encode(['success' => true, 'message' => 'Material deleted successfully']);
-    exit;
+    respond(true, 'Material deleted successfully');
 
 } catch (Throwable $e) {
     $connection->rollback();
@@ -187,13 +198,14 @@ try {
  * Flush *only* JSON; purge any prior output so fetch().json() never breaks.
  */
 function respond(bool $success, string $message, array $extra = []): void {
-    $payload = json_encode(['success' => $success, 'message' => $message] + $extra, JSON_UNESCAPED_UNICODE);
-    if ($payload === false) {
-        $payload = '{"success":false,"message":"JSON encode failure"}';
-    }
-    if (ob_get_length()) { ob_clean(); }          // remove stray output
+    $payload = json_encode(['success'=>$success,'message'=>$message] + $extra, JSON_UNESCAPED_UNICODE);
+    if ($payload === false) { $payload = '{"success":false,"message":"JSON encode failure"}'; }
+    // Clear ALL output buffers so no HTML leaks before JSON
+    while (ob_get_level() > 0) { ob_end_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store');
     header('Content-Length: ' . strlen($payload));
     echo $payload;
     exit;
 }
+
