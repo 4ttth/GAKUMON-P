@@ -1,6 +1,6 @@
 <?php
 // autoGenetedQuiz.php
-
+// INADD KO TO FOR TESTING LUNGS
 $lesson_id = (int)($_GET['lesson_id'] ?? 0);
 $file_id   = (int)($_GET['file_id']   ?? 0);
 
