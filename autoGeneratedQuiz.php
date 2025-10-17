@@ -66,7 +66,7 @@ TEXT TO BASE QUIZ ON:
 /**
  * 3️⃣  OpenRouter API configuration
  */
-$apiKey = "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";
+$apiKey = "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";
 $apiUrl = "https://openrouter.ai/api/v1/chat/completions";
 
 $payload = [
