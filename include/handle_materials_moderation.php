@@ -1,10 +1,13 @@
 <?php
+declare(strict_types=1);
+header('Content-Type: application/json; charset=utf-8');
 // Start buffering immediately so any accidental output can be cleaned
 ob_start();
 session_start();
 
 // Use an absolute path so includes never fail silently
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../include/helpers/admin_audit.php';  // <-- make it available
 
 // Always return JSON; block PHP warnings from leaking into the response
 header('Content-Type: application/json; charset=utf-8');
@@ -13,6 +16,45 @@ header('Content-Type: application/json; charset=utf-8');
 set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
+
+// 1) Try to load a dedicated helper if you have one
+$helper = __DIR__ . '/../include/helper/log_admin_action.php';
+
+// 2) Otherwise, (carefully) load from admin_ajax.php without emitting its output
+if (file_exists($helper)) {
+    require_once $helper;
+} else {
+    $maybeAdminAjax = __DIR__ . '/../admin_ajax.php';
+    if (file_exists($maybeAdminAjax)) {
+        ob_start();
+        require_once $maybeAdminAjax;
+        ob_end_clean();
+    }
+}
+
+// 3) Final safety: define a compatible logger if still missing (prevents fatal)
+if (!function_exists('logAdminAction')) {
+    function logAdminAction($connection, $adminId, $action, $targetTypeOrDetails = '', $targetId = null) {
+        try {
+            // If your table has columns: admin_id, action, details, created_at
+            $details = is_null($targetId) ? (string)$targetTypeOrDetails : ($targetTypeOrDetails . ' #' . $targetId);
+            if ($connection && method_exists($connection, 'prepare')) {
+                $stmt = $connection->prepare(
+                    "INSERT INTO tbl_admin_audit_logs (admin_id, action, details, created_at)
+                    VALUES (?, ?, ?, NOW())"
+                );
+                if ($stmt) {
+                    $stmt->bind_param('iss', $adminId, $action, $details);
+                    $stmt->execute();
+                    $stmt->close();
+                }
+            }
+        } catch (Throwable $e) {
+            // swallow/log as needed
+        }
+        return true;
+    }
+}
 
 try {
     // Basic request validation
