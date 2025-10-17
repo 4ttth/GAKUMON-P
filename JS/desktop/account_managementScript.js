@@ -167,58 +167,89 @@ document.addEventListener('DOMContentLoaded', function() {
     // }
 });
 
+async function expectJSON(response) {
+  const ct = response.headers.get('content-type') || '';
+  const body = await response.text(); // read once
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${body.slice(0, 200)}`);
+  }
+  if (!ct.includes('application/json')) {
+    throw new Error(`Expected JSON but got:\n${body.slice(0, 200)}`);
+  }
+  try {
+    return JSON.parse(body);
+  } catch (e) {
+    throw new Error(`Invalid JSON:\n${body.slice(0, 200)}`);
+  }
+}
+
+async function parseJSONorThrow(response) {
+  const text = await response.text();                // read once
+  const ct = response.headers.get('content-type') || '';
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${text.slice(0, 300)}`);
+  }
+  if (!ct.includes('application/json')) {
+    throw new Error(`Expected JSON but got:\n${text.slice(0, 300)}`);
+  }
+  try { return JSON.parse(text); }
+  catch (e) { throw new Error(`Invalid JSON:\n${text.slice(0, 300)}`); }
+}
+
+
+
 // Edit user function
 function saveEdit(userId) {
-    const form = document.getElementById(`editForm${userId}`);
-    const formData = new FormData(form);
-    
-    // Add AJAX call to update user
-    fetch('update_user.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Close modal and refresh page
-            const modal = bootstrap.Modal.getInstance(document.getElementById(`editModal${userId}`));
-            modal.hide();
-            location.reload();
-        } else {
-            alert('Error updating user: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error updating user');
-    });
+  const form = document.getElementById(`editForm${userId}`);
+  const formData = new FormData(form);
+
+  fetch('update_user.php', {
+  method: 'POST',
+    body: formData,
+    credentials: 'same-origin',
+    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(parseJSONorThrow)
+  .then(data => {
+    if (data.success) {
+      const modal = bootstrap.Modal.getInstance(document.getElementById(`editModal${userId}`));
+      if (modal) modal.hide();
+      location.reload();
+    } else {
+      alert('Error updating user: ' + (data.message || 'Unknown error'));
+    }
+  })
+  .catch(err => {
+    console.error('Update error:', err);
+    alert('Update failed: ' + err.message);
+  });
 }
+
 
 // Delete user function
 function confirmDelete(userId) {
-    if (confirm('Are you sure you want to delete this account? This action cannot be undone.')) {
-        // Add AJAX call to delete user
-        fetch('delete_user.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ user_id: userId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Close modal and refresh page
-                const modal = bootstrap.Modal.getInstance(document.getElementById(`deleteModal${userId}`));
-                modal.hide();
-                location.reload();
-            } else {
-                alert('Error deleting user: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error deleting user');
-        });
+  if (!confirm('Are you sure you want to delete this account? This action cannot be undone.')) return;
+
+  const fd = new FormData();
+ fd.append('user_id', userId);
+ fetch('delete_user.php', {
+   method: 'POST',
+   body: fd,
+   credentials: 'same-origin',
+   headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+ })
+ .then(parseJSONorThrow)
+  .then(data => {
+    if (data.success) {
+      const modal = bootstrap.Modal.getInstance(document.getElementById(`deleteModal${userId}`));
+      if (modal) modal.hide();
+      location.reload();
+    } else {
+      alert('Error deleting user: ' + (data.message || 'Unknown error'));
     }
+  })
+  .catch(err => {
+    console.error('Delete error:', err);
+    alert('Delete failed: ' + err.message);
+  });
 }
