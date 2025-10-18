@@ -417,6 +417,23 @@ let currentCategory = 'gakulessons';
 let currentPage = 1;
 const itemsPerPage = 9;
 
+// Function to show/hide Add Lesson button
+function toggleAddLessonButton(category) {
+    const addLessonContainer = document.querySelector('.add-lesson-container');
+    const addLessonBtn = document.querySelector('.addlLessonBtn');
+    
+    if (addLessonContainer && addLessonBtn) {
+        if (category === 'mylessons') {
+            addLessonContainer.style.display = 'block';
+            addLessonBtn.style.display = 'block';
+        } else {
+            addLessonContainer.style.display = 'none';
+            addLessonBtn.style.display = 'none';
+        }
+    }
+}
+
+
 // Initialize the page
 function init() {
     // Add event listeners to tabs
@@ -424,6 +441,7 @@ function init() {
         tab.addEventListener('click', () => {
             const category = tab.getAttribute('data-category');
             setActiveTab(tab);
+            toggleAddLessonButton(category); // Add this line
             showLessons(category);
         });
     });
@@ -448,6 +466,10 @@ function init() {
             updatePagination();
         });
     });
+
+    // Set initial button state
+    toggleAddLessonButton(currentCategory);
+
     
     // Load initial lessons
     showLessons(currentCategory);

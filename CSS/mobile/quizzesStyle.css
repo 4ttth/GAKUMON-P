@@ -2772,3 +2772,10 @@ input[type="password"]::-ms-clear {
     display: flex;
     flex-direction: column;
 }
+
+.add-lesson-container {
+    transition: opacity 0.3s ease;
+}
+.add-lesson-container.hidden {
+    display: none;
+}
