@@ -62,6 +62,98 @@
 </div>
 
 <script>
+/* === PetPanel Renderer (drop-in; no changes to your code) ==================
+   - Creates an overlay inside .pet-image
+   - Reads equipped IDs from localStorage: gaku_equipped_<userId>_<petType>
+   - Maps IDs → filenames using inventory from window.__GAKUMON_DATA__/serverData
+============================================================================ */
+(function(){
+  if (window.__PETPANEL_SYNC_LOADED__) return;
+  window.__PETPANEL_SYNC_LOADED__ = true;
+
+  const ACCESSORIES_BASE = '/IMG/Accessories'; // absolute path so it works on any page
+
+  function ensureHost(){
+    // Reuse existing if present
+    let host = document.getElementById('accessoryLayers');
+    if (host) return host;
+
+    // Create inside your .pet-image wrapper
+    const wrap = document.querySelector('.pet-image, [data-pet-image]');
+    if (!wrap) return null;
+
+    const cs = getComputedStyle(wrap);
+    if (cs.position === 'static') wrap.style.position = 'relative';
+
+    host = document.createElement('div');
+    host.id = 'accessoryLayers';
+    Object.assign(host.style, { position:'absolute', inset:'0', pointerEvents:'none' });
+    wrap.appendChild(host);
+    return host;
+  }
+
+  function getEquipStorageKey(userId, petType){
+    return `gaku_equipped_${userId || 'anon'}_${petType || 'pet'}`;
+  }
+  function readEquipped(userId, petType){
+    try {
+      const raw = localStorage.getItem(getEquipStorageKey(userId, petType));
+      const arr = JSON.parse(raw || '[]');
+      return Array.isArray(arr) ? arr.map(Number) : [];
+    } catch { return []; }
+  }
+
+  function resolveAccessorySrc(item, petType){
+    const cand = (item?.accessory_image_url || item?.icon || item?.image_url || item?.image || '').trim();
+    if (!cand) return null;
+    if (/^https?:\/\//i.test(cand)) return cand;        // absolute URL
+    if (cand.startsWith('/')) return cand;              // absolute path
+    if (cand.includes('/')) return cand.startsWith('IMG/') ? `/${cand}` : cand; // relative with folders
+    return `${ACCESSORIES_BASE}/${petType}/${cand}`;    // filename only → pet-specific folder
+  }
+
+  function render(){
+    const host = ensureHost();
+    const data = window.__GAKUMON_DATA__ || window.serverData;
+    if (!host || !data?.inventory || !data?.pet) return;
+
+    const userId   = data.userId;
+    const petType  = data.pet.type || 'pet';
+    const equipped = readEquipped(userId, petType);
+
+    host.innerHTML = '';
+    if (!equipped.length) return;
+
+    const byId = new Map(data.inventory.map(i => [Number(i.id), i]));
+    equipped.forEach((id, idx) => {
+      const item = byId.get(Number(id));
+      if (!item) return;
+      if (String(item.type).toLowerCase() !== 'accessories') return;
+
+      const src = resolveAccessorySrc(item, petType);
+      if (!src) return;
+
+      const img = new Image();
+      img.className = 'accessory-layer';
+      Object.assign(img.style, {
+        position:'absolute', inset:'0', width:'100%', height:'100%',
+        objectFit:'contain', pointerEvents:'none', zIndex:String(100 + idx)
+      });
+      img.src = src;
+      host.appendChild(img);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', render);
+  window.PetPanelSync = { refresh: render };
+  window.addEventListener('storage', e => {
+    if (e.key && e.key.startsWith('gaku_equipped_')) render();
+  });
+})();
+</script>
+
+
+<script>
 /* ===== Pet Panel: smart state fetch (zero server changes) ==================
    If __GAKUMON_DATA__ isn't present here, we fetch gakumon.php as text and
    extract the JSON object assigned to window.__GAKUMON_DATA__.
@@ -122,7 +214,7 @@
 
   async function fetchGakuStateViaHTML() {
     try {
-      const res = await fetch('gakumon.php', { credentials: 'same-origin' });
+      const res = await fetch('/gakumon.php', { credentials: 'same-origin' });
       const html = await res.text();
       return extractGakuDataFromHTML(html);
     } catch { return null; }
