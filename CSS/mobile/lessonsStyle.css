@@ -46,20 +46,6 @@ html, body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* [OFFICIAL] Navigation Bar Style */
 /* ===== MOBILE BOTTOM NAVIGATION ===== */
 .mobile-bottom-nav {
@@ -2875,4 +2861,11 @@ input[type="password"]::-ms-clear {
     max-width: 500px;
     line-height: 1;
     justify-self: center;
+}
+
+.add-lesson-container {
+    transition: opacity 0.3s ease;
+}
+.add-lesson-container.hidden {
+    display: none;
 }
