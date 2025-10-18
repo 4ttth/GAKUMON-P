@@ -30,7 +30,7 @@
 
    $pageTitle = 'GAKUMON';
    $pageCSS = 'CSS/desktop/homepageStyle.css';
-   $pageJS = 'JS/desktop/homepageScript.js';
+   $pageJS = 'JS/desktop/senseiScript.js';
 
    include 'include/header.php';
    require_once 'config/config.php'; // Database Connection
