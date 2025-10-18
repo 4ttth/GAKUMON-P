@@ -21,12 +21,30 @@
             $activeSensei = 'active';
             break;
     }
+
+
+    // Determine which logo to show based on user role and subscription
+    $logoPath = "IMG/Logos/logo_text_landscape_white.png"; // Default logo
+   
+    if (isset($_SESSION['sUserRole'])) {
+        if ($_SESSION['sUserRole'] === 'Gakusensei') {
+            $logoPath = "IMG/Logos/sensei.png"; // Sensei logo
+        } else if ($_SESSION['sUserRole'] === 'Gakusei') {
+            // Check subscription type for Gakusei
+            if (isset($_SESSION['sSubscription']) && $_SESSION['sSubscription'] === 'Premium') {
+                $logoPath = "IMG/Logos/premium.png"; // Premium student logo
+            } else {
+                $logoPath = "IMG/Logos/logo_text_landscape_white.png"; // Free student logo
+            }
+        }
+    }
 ?>
 
+
 <nav class="side-navbar">
-    <!-- Logo -->
+    <!-- Logo - Dynamic based on user role and subscription -->
     <div class="nav-logo">
-        <img src="IMG/Logos/logo_text_landscape_white.png" alt="Gakumon Logo">
+        <img src="<?php echo $logoPath; ?>" alt="Gakumon Logo">
     </div>
     
     <!-- Navigation Items -->
