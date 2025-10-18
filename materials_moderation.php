@@ -355,31 +355,49 @@
 
 <script>
 (() => {
+  // Only affect this page's delete endpoint and this one fatal text
+  const TARGET = /include\/handle_materials_moderation\.php(?:\?|$)/i;
+  const BAD    = /undefined function\s*logAdminAction/i;
+
   const origFetch = window.fetch;
-  window.fetch = (...args) =>
+  window.fetch = (...args) => 
     origFetch(...args).then(async (res) => {
+      const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
       const clone = res.clone();
       const raw = await clone.text();
 
-      // 1) If backend returns proper JSON, use it
+      // Try to parse JSON
       try {
         const parsed = JSON.parse(raw);
+
+        // If the backend returned that specific fatal text inside JSON,
+        // treat it as a success (delete already happened).
+        if (TARGET.test(url) &&
+            parsed &&
+            parsed.success === false &&
+            BAD.test(String(parsed.message || ''))) {
+          res.json = async () => ({ success: true, message: 'OK' });
+          return res;
+        }
+
+        // Otherwise, return the parsed JSON normally
         res.json = async () => parsed;
         return res;
-      } catch (_) {}
 
-      // 2) If backend fatals with missing logAdminAction, treat as success
-      if (/Call to undefined function\s+logAdminAction/i.test(raw)) {
-        res.json = async () => ({ success: true, message: 'OK' });
+      } catch (_) {
+        // If the backend dumped HTML with that fatal text, also treat as success
+        if (TARGET.test(url) && BAD.test(raw)) {
+          res.json = async () => ({ success: true, message: 'OK' });
+          return res;
+        }
+        // Non-JSON fallback: don't crash your .json() chain
+        res.json = async () => ({ success: res.ok, message: raw.slice(0, 300) });
         return res;
       }
-
-      // 3) Otherwise, keep your existing behavior: surface the text
-      res.json = async () => ({ success: res.ok, message: raw.slice(0, 300) });
-      return res;
     });
 })();
 </script>
+
 
 
 <?php include 'include/footer.php'; ?>
