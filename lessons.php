@@ -736,22 +736,31 @@
 </div>
 
 <!-- Subscribe Modal -->
-<div class="custom-modal" id="subscribeModal">
-    <div class="custom-modal-backdrop"></div>
-    <div class="custom-modal-dialog">
-        <div class="custom-modal-content">
-            <div class="custom-modal-header">
-            </div>
-            <div class="custom-modal-body">
-                <div class="modal-lesson-content">
-                    <h6> Number of Lesson Creation Limit Already Reached! Subscribe to Gakumon to create more lessons! </h6>
-            <div class="submitButton custom-modal-footer-input">
-               <a href="subscription.php"><button type="button" class="btnSubmit btn btn-primary">Subscribe Now!</button></a>
-               <button type="button" class="exitButton btn btn-secondary" onclick="closeSubscribeModal(this)">Cancel</button>
+<div class="custom-modal" id="subscribeModal" aria-hidden="true">
+  <div class="custom-modal-backdrop" onclick="closeSubscribeModal()"></div>
 
-            </div>
+  <div class="custom-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="subscribeTitle">
+    <div class="custom-modal-content">
+      <!-- Header (kept consistent with other modals) -->
+      <div class="custom-modal-header">
+        <!-- <h5 class="custom-modal-title" id="subscribeTitle">Upgrade to Premium</h5>
+        <button type="button" class="custom-modal-close" aria-label="Close" onclick="closeSubscribeModal()">&times;</button> -->
+      </div>
+
+      <!-- Body -->
+      <div class="custom-modal-body">
+        <div class="modal-lesson-content">
+          <h6>You must be a Premium Member to enroll this lesson!</h6>
         </div>
+      </div>
+
+      <!-- Footer (same placement as your other modals) -->
+      <div class="custom-modal-footer">
+        <button type="button" class="exitButton btn btn-secondary" onclick="closeSubscribeModal()">Cancel</button>
+        <a href="subscription.php" class="btn btn-primary btnSubmit btnSubscribe">Subscribe Now!</a>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
