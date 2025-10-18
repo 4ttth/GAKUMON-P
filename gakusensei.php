@@ -133,7 +133,7 @@
                         <div class="stat-label">Active Gakusensei</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number">$50K+</div>
+                        <div class="stat-number">₱25K+</div>
                         <div class="stat-label">Paid to Creators</div>
                     </div>
                     <div class="stat-item">
