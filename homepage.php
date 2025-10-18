@@ -685,10 +685,17 @@
 </div>
 
 <!-- GAKUSENSEI PART ONLY!!! -->
-<?php 
-// Only show bank modal if user is Gakusensei AND hasn't submitted bank info yet
-if (isset($_SESSION['sUserRole']) && $_SESSION['sUserRole'] === 'Gakusensei' && empty($bankInfo)): 
+<?php
+// Consider bank info incomplete if there's no row OR any required fields are missing
+$needsBankInfo = !$bankInfo
+    || empty($bankInfo['bank_code'])
+    || empty($bankInfo['account_number'])
+    || empty($bankInfo['account_first_name'])
+    || empty($bankInfo['account_last_name']);
+
+if (isset($_SESSION['sUserRole']) && $_SESSION['sUserRole'] === 'Gakusensei' && $needsBankInfo):
 ?>
+
 <!-- Gakusensei Bank Information Modal -->
 <div class="gakusensei-modal" id="gakusenseiBankModal">
     <div class="gakusensei-modal-content">
