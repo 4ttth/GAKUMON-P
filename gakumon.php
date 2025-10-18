@@ -258,43 +258,39 @@ $serverData = [
   // console.log('serverData', window.serverData);
 </script>
 
+<?php if ($isMobile): ?>
 <script>
-// Compat shim: unify userId so getEquipStorageKey() uses the real ID (not 'anon')
+// Mobile-only: unify userId so mobile uses the real LS key (not 'anon')
 (function () {
-  // Prefer already-set objects
   const g = (window.__GAKUMON_DATA__ = window.__GAKUMON_DATA__ || {});
   const s = (window.serverData     = window.serverData     || {});
 
-  // Pull id from whichever place you already populate
-  const idFromData =
-    s.userId ||
-    g.userId ||
+  const id =
+    s.userId || g.userId ||
     (s.user && s.user.id) ||
     (g.user && g.user.id);
 
-  if (idFromData != null && idFromData !== '') {
-    // Set both so all scripts agree on the same key
-    s.userId = idFromData;
-    g.userId = idFromData;
+  if (id != null && id !== '') {
+    s.userId = id;
+    g.userId = id;
   }
 
-  // Optional: if localStorage is empty but DB says some items are equipped,
-  // seed LS once so reloads are consistent on mobile.
+  // Seed LS once from DB if empty (helps the first mobile load)
   try {
     const petType = (s.pet && s.pet.type) || (g.pet && g.pet.type) || 'pet';
-    const key = `gaku_equipped_${idFromData || 'anon'}_${petType}`;
+    const key = `gaku_equipped_${id || 'anon'}_${petType}`;
     if (!localStorage.getItem(key)) {
       const inv = (s.inventory || g.inventory || []);
       const equippedIds = inv
-        .filter(i => (String(i.type).toLowerCase() === 'accessories' || String(i.type).toLowerCase() === 'decorations') && i.equipped)
+        .filter(i => ['accessories','decorations'].includes(String(i.type).toLowerCase()) && i.equipped)
         .map(i => Number(i.id));
-      if (equippedIds.length) {
-        localStorage.setItem(key, JSON.stringify(equippedIds));
-      }
+      if (equippedIds.length) localStorage.setItem(key, JSON.stringify([...new Set(equippedIds)]));
     }
   } catch {}
 })();
 </script>
+<?php endif; ?>
+
 
 
 <!-- IMPORTANT: this must come AFTER the block above -->
@@ -486,5 +482,100 @@ $serverData = [
         });
     });
 </script>
+
+<?php if ($isMobile): ?>
+<script>
+(function () {
+  if (window.__GAKU_EQUIP_PERSIST__) return;
+  window.__GAKU_EQUIP_PERSIST__ = true;
+
+  const TYPES = new Set(['accessories','decorations']);
+
+  function userId(){ return (window.serverData && window.serverData.userId) || 'anon'; }
+  function petType(){ return (window.serverData && window.serverData.pet && window.serverData.pet.type) || 'pet'; }
+  function lsKey(){ return `gaku_equipped_${userId()}_${petType()}`; }
+
+  function nameToId(){
+    const map = new Map();
+    const inv = Array.isArray(window.serverData?.inventory) ? window.serverData.inventory : [];
+    inv.forEach(i=>{
+      const t = String(i.type||'').toLowerCase().trim();
+      if (TYPES.has(t)) map.set(String(i.name).trim(), Number(i.id));
+    });
+    return map;
+  }
+
+  function saveFromDOM(){
+    const names = [];
+    document.querySelectorAll('#itemsScrollable .item-card.equipped .item-name')
+      .forEach(el => names.push(el.textContent.trim()));
+    const m = nameToId();
+    const ids = names.map(n => m.get(n)).filter(n => Number.isFinite(n));
+    localStorage.setItem(lsKey(), JSON.stringify([...new Set(ids)]));
+  }
+
+  function clickAccessoriesTab(){
+    const tab = document.querySelector('.category-tab[data-category="accessories"]');
+    if (tab) tab.click();
+    return !!tab;
+  }
+
+  function applySaved(){
+    let want = [];
+    try { want = JSON.parse(localStorage.getItem(lsKey()) || '[]'); } catch {}
+    if (!Array.isArray(want) || !want.length) return;
+
+    const wanted = new Set(want.map(Number));
+    const m = nameToId();
+
+    function equipVisible(){
+      document.querySelectorAll('#itemsScrollable .item-card').forEach(card=>{
+        const nameEl = card.querySelector('.item-name');
+        if (!nameEl) return;
+        const id = m.get(nameEl.textContent.trim());
+        if (!Number.isFinite(id)) return;
+        const should = wanted.has(id);
+        const isOn = card.classList.contains('equipped');
+        if (should && !isOn) card.click(); // uses your existing toggle logic
+      });
+    }
+
+    if (clickAccessoriesTab()) {
+      setTimeout(equipVisible, 80);
+    } else {
+      equipVisible();
+    }
+  }
+
+  function bindDelegates(){
+    const scroller = document.getElementById('itemsScrollable');
+    if (!scroller || scroller.__persist_bound) return;
+    scroller.__persist_bound = true;
+
+    // Save after your UI toggles classes / state
+    scroller.addEventListener('click', (e)=>{
+      if (!e.target.closest('.item-card')) return;
+      setTimeout(saveFromDOM, 40);
+    }, true);
+  }
+
+  function ready(fn){ document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn) : fn(); }
+
+  ready(()=>{
+    // Give your UI a moment to render, then restore equips on mobile
+    setTimeout(applySaved, 150);
+    bindDelegates();
+    // Keep LS fresh when orientation changes reflow the UI
+    window.addEventListener('orientationchange', () => setTimeout(saveFromDOM, 200));
+  });
+
+  // Cross-tab sync (equip in one tab → reflects here)
+  window.addEventListener('storage', (e)=>{
+    if (e.key && e.key.startsWith('gaku_equipped_')) setTimeout(applySaved, 60);
+  });
+})();
+</script>
+<?php endif; ?>
+
 
 <?php include 'include/footer.php'; ?>
