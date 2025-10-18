@@ -258,6 +258,45 @@ $serverData = [
   // console.log('serverData', window.serverData);
 </script>
 
+<script>
+// Compat shim: unify userId so getEquipStorageKey() uses the real ID (not 'anon')
+(function () {
+  // Prefer already-set objects
+  const g = (window.__GAKUMON_DATA__ = window.__GAKUMON_DATA__ || {});
+  const s = (window.serverData     = window.serverData     || {});
+
+  // Pull id from whichever place you already populate
+  const idFromData =
+    s.userId ||
+    g.userId ||
+    (s.user && s.user.id) ||
+    (g.user && g.user.id);
+
+  if (idFromData != null && idFromData !== '') {
+    // Set both so all scripts agree on the same key
+    s.userId = idFromData;
+    g.userId = idFromData;
+  }
+
+  // Optional: if localStorage is empty but DB says some items are equipped,
+  // seed LS once so reloads are consistent on mobile.
+  try {
+    const petType = (s.pet && s.pet.type) || (g.pet && g.pet.type) || 'pet';
+    const key = `gaku_equipped_${idFromData || 'anon'}_${petType}`;
+    if (!localStorage.getItem(key)) {
+      const inv = (s.inventory || g.inventory || []);
+      const equippedIds = inv
+        .filter(i => (String(i.type).toLowerCase() === 'accessories' || String(i.type).toLowerCase() === 'decorations') && i.equipped)
+        .map(i => Number(i.id));
+      if (equippedIds.length) {
+        localStorage.setItem(key, JSON.stringify(equippedIds));
+      }
+    }
+  } catch {}
+})();
+</script>
+
+
 <!-- IMPORTANT: this must come AFTER the block above -->
 <script src="<?= htmlspecialchars($pageJS, ENT_QUOTES) ?>"></script>
 
