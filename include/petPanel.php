@@ -62,69 +62,112 @@
 </div>
 
 <script>
-// Drop-in patch: safe path resolver + skip empties
-(function () {
-  // Put this near the top of the snippet (under your ACCESSORIES_BASE)
-  function resolveAccessorySrc(item, petType) {
-    const cand =
-      (item && (item.accessory_image_url || item.icon || item.image_url || item.image)) || '';
+/* ===== Pet Panel: smart state fetch (zero server changes) ==================
+   If __GAKUMON_DATA__ isn't present here, we fetch gakumon.php as text and
+   extract the JSON object assigned to window.__GAKUMON_DATA__.
+============================================================================ */
+(function(){
+  if (window.__PETPANEL_STATE_SCRAPER__) return; 
+  window.__PETPANEL_STATE_SCRAPER__ = true;
 
-    // nothing to load? don't attempt any request
-    if (!cand || String(cand).trim() === '') return null;
+  // 1) Try local globals first (if page already has them)
+  function getLocalState() {
+    const g = window.__GAKUMON_DATA__;
+    if (g && g.inventory && g.pet) return g;
+    const s = window.serverData;
+    if (s && s.inventory && s.pet) return s;
+    return null;
+  }
 
-    const v = String(cand).trim();
+  // 2) Extract { ... } assigned to __GAKUMON_DATA__ from HTML text
+  function extractGakuDataFromHTML(html) {
+    // Find the <script> which sets window.__GAKUMON_DATA__ = { ... };
+    const scriptMatches = html.match(/<script[^>]*>[\s\S]*?<\/script>/gi) || [];
+    for (const tag of scriptMatches) {
+      if (!/__GAKUMON_DATA__\s*=/.test(tag)) continue;
+      // Grab the JS inside the tag
+      const js = tag.replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '');
 
-    // absolute URL
-    if (/^https?:\/\//i.test(v)) return v;
+      // Find the first '{' after the equals sign, then parse a balanced JSON object
+      const eqIdx = js.indexOf('__GAKUMON_DATA__');
+      const afterEq = js.indexOf('=', eqIdx);
+      if (afterEq === -1) continue;
+      let i = js.indexOf('{', afterEq);
+      if (i === -1) continue;
 
-    // absolute path on same origin
-    if (v.startsWith('/')) return v;
+      let depth = 0, inStr = false, esc = false;
+      for (let j = i; j < js.length; j++) {
+        const ch = js[j];
+        if (inStr) {
+          if (esc) { esc = false; continue; }
+          if (ch === '\\') { esc = true; continue; }
+          if (ch === '"') inStr = false;
+        } else {
+          if (ch === '"') inStr = true;
+          else if (ch === '{') depth++;
+          else if (ch === '}') {
+            depth--;
+            if (depth === 0) {
+              const jsonText = js.slice(i, j + 1);
+              try {
+                return JSON.parse(jsonText); // JSON_HEX_* is valid JSON, so parse works
+              } catch(e) { /* try next script */ }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 
-    // looks like a relative path (already includes folders)
-    if (v.includes('/')) {
-      // normalize common "IMG/..." case
-      return v.startsWith('IMG/') ? `/${v}` : v;
+  async function fetchGakuStateViaHTML() {
+    try {
+      const res = await fetch('gakumon.php', { credentials: 'same-origin' });
+      const html = await res.text();
+      return extractGakuDataFromHTML(html);
+    } catch { return null; }
+  }
+
+  // 3) Wrap the original sync to inject state if missing
+  async function ensureStateThenSync() {
+    // If the original PetPanelSync exists, we’ll call its refresh afterward.
+    const hasOriginal = !!(window.PetPanelSync && window.PetPanelSync.refresh);
+
+    // If state already present, just refresh
+    if (getLocalState()) {
+      hasOriginal && window.PetPanelSync.refresh();
+      return;
     }
 
-    // filename only -> default to IMG/Accessories/<petType>/<file>
-    return `IMG/Accessories/${petType}/${v}`;
-  }
-
-  // Replace your renderAccessories with this safe version
-  function renderAccessories(opts) {
-    const { host, equippedIds, inventory, petType } = opts;
-    if (!host || !Array.isArray(equippedIds) || !Array.isArray(inventory)) return;
-    if (!equippedIds.length) { host.innerHTML = ''; return; }
-
-    const byId = new Map(inventory.map(i => [Number(i.id), i]));
-    host.innerHTML = '';
-
-    equippedIds.forEach((id, idx) => {
-      const item = byId.get(Number(id));
-      if (!item) return;
-      if (String(item.type).toLowerCase() !== 'accessories') return;
-
-      const src = resolveAccessorySrc(item, petType);
-      if (!src) return; // <-- skip if we don't have a real file
-
-      const img = document.createElement('img');
-      img.className = 'accessory-layer';
-      img.alt = item.name || 'Accessory';
-      Object.assign(img.style, {
-        position: 'absolute',
-        inset: '0',
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
-        pointerEvents: 'none',
-        zIndex: String(10 + idx)
+    // Fetch state from gakumon.php and attach it as a global for the existing code to use
+    const state = await fetchGakuStateViaHTML();
+    if (state && state.inventory && state.pet) {
+      // Make it available to the first snippet (no changes needed there)
+      window.__GAKUMON_DATA__ = state;
+      window.serverData = Object.assign(window.serverData || {}, {
+        userId: state.userId,
+        pet: state.pet,
+        inventory: state.inventory
       });
-      img.src = src;
-      host.appendChild(img);
-    });
+      // Now ask the original sync to render with real data
+      hasOriginal && window.PetPanelSync.refresh();
+    } else {
+      // No state found — nothing to draw, but nothing to break either
+      // console.info('PetPanel: could not load GAKUMON state');
+    }
   }
 
-  // expose back to the original snippet (no other edits required)
-  window.PetPanelSync = Object.assign(window.PetPanelSync || {}, { _resolveAccessorySrc: resolveAccessorySrc });
+  // Run after DOM is ready (and after the first snippet attached its refresh)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureStateThenSync);
+  } else {
+    ensureStateThenSync();
+  }
+
+  // If the user equips/unequips in another tab, refresh here too
+  window.addEventListener('storage', function (e) {
+    if (!e.key || !e.key.startsWith('gaku_equipped_')) return;
+    ensureStateThenSync();
+  });
 })();
 </script>
