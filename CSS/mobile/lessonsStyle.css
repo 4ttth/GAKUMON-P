@@ -2916,7 +2916,7 @@ input[type="password"]::-ms-clear {
     max-width: 90%;
     border-radius: 100px;
     font-family: 'SFpro_bold', sans-serif;
-    font-size: 20px;
+    font-size: 15px;
     text-transform: uppercase;
     background: linear-gradient(135deg, #811212 0%, #4C0707 30%, #811212 70%, #4C0707 100%);
     background-size: 200% 200%;
