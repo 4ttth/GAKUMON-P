@@ -706,14 +706,9 @@
 
 <!-- GAKUSENSEI PART ONLY!!! -->
 <?php
-// Consider bank info incomplete if there's no row OR any required fields are missing
-$needsBankInfo = !$bankInfo
-    || empty($bankInfo['bank_code'])
-    || empty($bankInfo['account_number'])
-    || empty($bankInfo['account_first_name'])
-    || empty($bankInfo['account_last_name']);
 
-if (isset($_SESSION['sUserRole']) && $_SESSION['sUserRole'] === 'Gakusensei' && $needsBankInfo):
+if (($_SESSION['sUserRole'] ?? null) === 'Gakusensei' && ($needsBankInfo ?? false)):
+
 ?>
 
 <!-- Gakusensei Bank Information Modal -->
