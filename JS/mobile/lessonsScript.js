@@ -793,12 +793,17 @@ function showLessons(category) {
         const card = document.createElement('div');
         card.className = 'lesson-card';
         const author = lesson.author_name || 'GakuLesson';
+        const hasAuthor = lesson.author_name && lesson.author_name !== 'GakuLesson'; // Check if real author exists
+       
         card.innerHTML = `
             <div class="card-img">
                 ${lesson.icon}
             </div>
             <div class="card-content">
-                <div class="lesson-title">${lesson.title}</div>
+                <div class="lesson-title-container">
+                    <div class="lesson-title">${lesson.title}</div>
+                    ${hasAuthor ? '<i class="bi bi-star-fill card-star"></i>' : ''} <!-- Star beside title -->
+                </div>
                 <div class="labels">
                     <div class="cardLabel cardLabel-gaku">@${author}</div>
                     <div class="label label-topic">${lesson.topic}</div>
