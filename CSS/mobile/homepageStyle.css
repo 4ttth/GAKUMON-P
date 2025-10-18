@@ -2723,3 +2723,20 @@ input[type="password"]::-ms-clear {
     opacity: 1;
     animation: shine 1.5s ease-in-out;
 }
+
+/* --- Center the Subscribe Modal on Mobile --- */
+@media (max-width: 768px) {
+  .modal.show[aria-labelledby="subscribeModalLabel"],
+  #subscribeModal.show,
+  .subscribe-modal.show {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #subscribeModal .modal-dialog {
+    margin: 0 !important;
+    top: auto !important;
+    transform: none !important;
+  }
+}
