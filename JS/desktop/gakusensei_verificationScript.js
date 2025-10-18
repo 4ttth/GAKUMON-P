@@ -167,6 +167,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // }
 });
 
+// Safely parse JSON; tolerate empty or non-JSON responses
+async function safeJson(response) {
+  const ct = response.headers.get('content-type') || '';
+  const text = await response.text();           // read once
+
+  // If server returns nothing, assume success so the UI can proceed
+  if (!text.trim()) return { success: true };
+
+  // If it's JSON or looks like JSON, parse it
+  if (ct.includes('application/json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error('Server returned invalid JSON.');
+    }
+  }
+
+  // Non-JSON body—surface first part for debugging
+  throw new Error('Server returned non-JSON response: ' + text.slice(0, 200));
+}
+
+
 // Approve application function
 function approveApplication(applicationId, userId) {
     if (confirm('Are you sure you want to approve this application?')) {
@@ -183,34 +205,53 @@ function approveApplication(applicationId, userId) {
         formData.append('user_id', userId);
 
         fetch('gakusensei_verification.php', {
-            method: 'POST',
-            body: formData
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' } // hint server to send JSON
         })
-        .then(response => response.json())
+        .then(safeJson)
         .then(data => {
-            if (data.success) {
-                // Close modal and refresh page
-                const modal = bootstrap.Modal.getInstance(document.getElementById(`approveModal${applicationId}`));
-                modal.hide();
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            } else {
-                alert('Error approving application: ' + data.message);
-                // Reset button
-                approveBtn.innerHTML = originalText;
-                approveBtn.disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error approving application');
-            // Reset button
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById(`approveModal${applicationId}`));
+            if (modal) modal.hide();
+            setTimeout(() => location.reload(), 300);   // snappier refresh
+        } else {
+            alert('Error approving application' + (data.message ? `: ${data.message}` : '.'));
             approveBtn.innerHTML = originalText;
             approveBtn.disabled = false;
+        }
+        })
+        .catch(error => {
+        console.error('Error:', error);
+        alert(error.message || 'Error approving application.');
+        approveBtn.innerHTML = originalText;
+        approveBtn.disabled = false;
         });
+
     }
 }
+
+// Safely parse JSON; tolerate empty or non-JSON responses
+async function safeJson(response) {
+  const ct = response.headers.get('content-type') || '';
+  const text = await response.text();           // read once
+
+  // If server returns nothing, assume success so the UI can proceed
+  if (!text.trim()) return { success: true };
+
+  // If it's JSON or looks like JSON, parse it
+  if (ct.includes('application/json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error('Server returned invalid JSON.');
+    }
+  }
+
+  // Non-JSON body—surface first part for debugging
+  throw new Error('Server returned non-JSON response: ' + text.slice(0, 200));
+}
+
 
 // Reject application function
 function rejectApplication(applicationId) {
@@ -227,32 +268,29 @@ function rejectApplication(applicationId) {
         formData.append('application_id', applicationId);
 
         fetch('gakusensei_verification.php', {
-            method: 'POST',
-            body: formData
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
         })
-        .then(response => response.json())
+        .then(safeJson)
         .then(data => {
-            if (data.success) {
-                // Close modal and refresh page
-                const modal = bootstrap.Modal.getInstance(document.getElementById(`rejectModal${applicationId}`));
-                modal.hide();
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            } else {
-                alert('Error rejecting application: ' + data.message);
-                // Reset button
-                rejectBtn.innerHTML = originalText;
-                rejectBtn.disabled = false;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error rejecting application');
-            // Reset button
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById(`rejectModal${applicationId}`));
+            if (modal) modal.hide();
+            setTimeout(() => location.reload(), 300);
+        } else {
+            alert('Error rejecting application' + (data.message ? `: ${data.message}` : '.'));
             rejectBtn.innerHTML = originalText;
             rejectBtn.disabled = false;
+        }
+        })
+        .catch(error => {
+        console.error('Error:', error);
+        alert(error.message || 'Error rejecting application.');
+        rejectBtn.innerHTML = originalText;
+        rejectBtn.disabled = false;
         });
+
     }
 }
 
