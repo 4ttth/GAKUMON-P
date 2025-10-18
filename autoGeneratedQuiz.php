@@ -1,12 +1,12 @@
 <?php
 // autoGenetedQuiz.php
-
+require_once __DIR__ . '/config/config.php';
 $lesson_id = (int)($_GET['lesson_id'] ?? 0);
 $file_id   = (int)($_GET['file_id']   ?? 0);
 
 // If file_id is missing, derive it from DB (latest file for the lesson)
 if ($lesson_id && !$file_id) {
-    require_once __DIR__ . '/config/config.php'; // uses $connection
+     // uses $connection
     $connection->set_charset('utf8mb4');
 
     $stmt = $connection->prepare("SELECT file_id FROM tbl_lesson_files WHERE lesson_id = ? ORDER BY file_id DESC LIMIT 1");
@@ -66,7 +66,7 @@ TEXT TO BASE QUIZ ON:
 /**
  * 3️⃣  OpenRouter API configuration
  */
-$apiKey = "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";
+$apiKey = $_OPEN_ROUTER_API_KEY;
 $apiUrl = "https://openrouter.ai/api/v1/chat/completions";
 
 $payload = [
