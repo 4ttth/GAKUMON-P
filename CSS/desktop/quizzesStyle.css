@@ -1838,3 +1838,10 @@ li {
     line-height: 1;
     justify-self: center;
 }
+
+.add-lesson-container {
+    transition: opacity 0.3s ease;
+}
+.add-lesson-container.hidden {
+    display: none;
+}
