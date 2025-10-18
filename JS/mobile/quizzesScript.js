@@ -340,6 +340,10 @@ function createLessonCard(lesson, progress) {
   const difficulty = lesson.difficulty || '';
   const iconHTML   = lesson.icon || '<i class="bi bi-question-circle"></i>';
 
+   // Check if real author exists (not GakuLesson) - ADD THIS LINE
+  const hasAuthor = lesson.author_name && lesson.author_name !== 'GakuLesson';
+
+
   // Clamp progress 0..100 (support "72%" strings)
   const pct = Math.max(0, Math.min(100, parseFloat(progress) || 0));
 
@@ -350,7 +354,9 @@ function createLessonCard(lesson, progress) {
       ${iconHTML}
     </div>
     <div class="card-content">
-      <div class="lesson-title">${title}</div>
+       <div class="lesson-title">${title}</div>
+        ${hasAuthor ? '<i class="bi bi-star-fill card-star"></i>' : ''} <!-- Star beside title -->
+      </div>
       <div class="labels">
         <div class="label label-gaku">@${author}</div>
         <div class="label label-topic">${topicLabel}</div>
