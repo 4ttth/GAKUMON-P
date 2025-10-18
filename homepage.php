@@ -24,6 +24,26 @@
     $stmt->bind_param('s', $_SESSION['sUser']);
     $stmt->execute();
     $bankInfo = $stmt->get_result()->fetch_assoc();
+
+    // After: $bankInfo = $stmt->get_result()->fetch_assoc();
+    $requiresOtherBankName = !empty($bankInfo['bank_code']) && strtoupper($bankInfo['bank_code']) === 'OTHER';
+
+    // Define what "complete" means (adjust field list if needed)
+    $hasCoreFields =
+        !empty($bankInfo['account_first_name']) &&
+        !empty($bankInfo['account_last_name']) &&
+        !empty($bankInfo['account_number']) &&
+        !empty($bankInfo['account_type']) &&
+        !empty($bankInfo['mobile_number']) &&
+        // bank must be chosen: either a code or an "other" name
+        (
+        (!empty($bankInfo['bank_code']) && strtoupper($bankInfo['bank_code']) !== 'OTHER') ||
+        ($requiresOtherBankName && !empty($bankInfo['other_bank_name']))
+        );
+
+    // Show modal if there is NO row or the row is INCOMPLETE
+    $needsBankInfo = !$bankInfo || !$hasCoreFields;
+
     $stmt->close();
     }
 
