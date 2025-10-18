@@ -695,6 +695,257 @@
   })();
 </script>
 
+<?php if ($isMobile): ?>
+<script>
+/* ==========================================================================
+   Mobile Pet Appearance Sync (quizzes page)
+   - Mirrors equipped accessories exactly like gakumon.php
+   - No changes to existing code/markup; runs only on mobile
+   ========================================================================== */
+(function(){
+  if (window.__QUIZZES_MOBILE_PETSYNC__) return;
+  window.__QUIZZES_MOBILE_PETSYNC__ = true;
+
+  const STATE_JSON   = '/include/gakumonState.inc.php';
+  const GAKUMON_PAGE = '/gakumon.php';
+  const ACCESSORIES_BASE = '/IMG/Accessories';
+  const MAX_WAIT_MS = 8000;
+
+  // ---------- Find/prepare the Pet Dome host ----------
+  function findPetContainer() {
+    let el = document.querySelector('#petImage')
+          || document.querySelector('.pet-image')
+          || document.querySelector('#petDome')
+          || document.querySelector('.pet-dome')
+          || document.querySelector('#pet-dome');
+
+    if (!el) {
+      const petImg = Array.from(document.images).find(img =>
+        /\/IMG\/Pets\//i.test(img.src) || img.classList.contains('pet-base')
+      );
+      if (petImg) el = petImg.parentElement;
+    }
+    if (!el) {
+      el = document.querySelector('.pet-container')
+        || document.querySelector('.pet-display-area')
+        || document.querySelector('[data-pet-image]');
+    }
+    return el || null;
+  }
+
+  function ensureOverlayHost() {
+    const wrap = findPetContainer();
+    if (!wrap) return null;
+
+    let host = wrap.querySelector('#mobileQuizAccessoryLayers');
+    if (host) return host;
+
+    const cs = getComputedStyle(wrap);
+    if (cs.position === 'static') wrap.style.position = 'relative';
+
+    host = document.createElement('div');
+    host.id = 'mobileQuizAccessoryLayers';
+    Object.assign(host.style, { position:'absolute', inset:'0', pointerEvents:'none', zIndex:'1000' });
+    wrap.appendChild(host);
+    return host;
+  }
+
+  function waitForContainer() {
+    return new Promise(resolve => {
+      const existing = ensureOverlayHost();
+      if (existing) return resolve(existing);
+
+      const start = Date.now();
+      const obs = new MutationObserver(() => {
+        const host = ensureOverlayHost();
+        if (host) { obs.disconnect(); clearInterval(iv); resolve(host); }
+        else if (Date.now() - start > MAX_WAIT_MS) { obs.disconnect(); clearInterval(iv); resolve(null); }
+      });
+      obs.observe(document.documentElement, { childList:true, subtree:true });
+
+      const iv = setInterval(() => {
+        const host = ensureOverlayHost();
+        if (host) { obs.disconnect(); clearInterval(iv); resolve(host); }
+        else if (Date.now() - start > MAX_WAIT_MS) { obs.disconnect(); clearInterval(iv); resolve(null); }
+      }, 200);
+    });
+  }
+
+  // ---------- State (inventory + pet.type + userId) ----------
+  async function fetchStateJSON() {
+    try {
+      const res = await fetch(STATE_JSON, { method:'GET', credentials:'same-origin' });
+      const data = await res.json();
+      // Accept either straight shape or { ok: true, inventory, pet }
+      const inv = Array.isArray(data?.inventory) ? data.inventory : null;
+      const pet = data?.pet || null;
+      if (inv && pet) return { ...data, inventory: inv, pet };
+    } catch {}
+    return null;
+  }
+
+  function extractGakuDataFromHTML(html) {
+    const scripts = html.match(/<script[^>]*>[\s\S]*?<\/script>/gi) || [];
+    for (const tag of scripts) {
+      if (!/__GAKUMON_DATA__\s*=/.test(tag)) continue;
+      const js = tag.replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '');
+      const k = js.indexOf('__GAKUMON_DATA__'); if (k === -1) continue;
+      const eq = js.indexOf('=', k);            if (eq === -1) continue;
+      let i = js.indexOf('{', eq);              if (i === -1) continue;
+
+      let depth = 0, inStr = false, esc = false;
+      for (let j = i; j < js.length; j++) {
+        const ch = js[j];
+        if (inStr) {
+          if (esc) { esc = false; continue; }
+          if (ch === '\\') { esc = true; continue; }
+          if (ch === '"') inStr = false;
+        } else {
+          if (ch === '"') inStr = true;
+          else if (ch === '{') depth++;
+          else if (ch === '}') {
+            depth--;
+            if (depth === 0) {
+              try { return JSON.parse(js.slice(i, j + 1)); } catch {}
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  async function ensureState() {
+    // Prefer already-present globals if mobileNav set them
+    let state = (window.__GAKUMON_DATA__ && window.__GAKUMON_DATA__.inventory && window.__GAKUMON_DATA__.pet)
+      ? window.__GAKUMON_DATA__
+      : (window.serverData && window.serverData.inventory && window.serverData.pet)
+        ? window.serverData
+        : null;
+
+    if (state) return state;
+
+    // Try JSON endpoint first
+    state = await fetchStateJSON();
+    if (state) {
+      window.__GAKUMON_DATA__ = state;
+      window.serverData = Object.assign(window.serverData || {}, {
+        userId: state.userId || state.user?.id,
+        pet: state.pet,
+        inventory: state.inventory
+      });
+      return state;
+    }
+
+    // Fallback: scrape gakumon.php
+    try {
+      const res = await fetch(GAKUMON_PAGE, { credentials:'same-origin' });
+      const html = await res.text();
+      state = extractGakuDataFromHTML(html) || null;
+      if (state) {
+        window.__GAKUMON_DATA__ = state;
+        window.serverData = Object.assign(window.serverData || {}, {
+          userId: state.userId || state.user?.id,
+          pet: state.pet,
+          inventory: state.inventory
+        });
+      }
+    } catch {}
+    return state;
+  }
+
+  // ---------- Helpers ----------
+  function lsKey(uid, petType) { return `gaku_equipped_${uid || 'anon'}_${petType || 'pet'}`; }
+
+  function readEquippedIds(uid, petType){
+    try {
+      const raw = localStorage.getItem(lsKey(uid, petType));
+      if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) return arr.map(Number); }
+    } catch {}
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('gaku_equipped_'));
+    const byType = keys.filter(k => k.endsWith(`_${petType}`));
+    for (const k of (byType.length ? byType : keys)) {
+      try { const arr = JSON.parse(localStorage.getItem(k) || '[]'); if (Array.isArray(arr)) return arr.map(Number); } catch {}
+    }
+    return [];
+  }
+
+  function resolveAccessorySrc(item, petType){
+    const cand = (item?.accessory_image_url || item?.icon || item?.image_url || item?.image || '').trim();
+    if (!cand) return null;
+    if (/^https?:\/\//i.test(cand)) return cand;
+    if (cand.startsWith('/')) return cand;
+    if (cand.includes('/')) return cand.startsWith('IMG/') ? `/${cand}` : cand;
+    return `${ACCESSORIES_BASE}/${petType}/${cand}`;
+  }
+
+  // ---------- Render ----------
+  function render(state, host){
+    if (!host || !state?.inventory || !state?.pet) return;
+
+    const uid = state.userId || state.user?.id || window.serverData?.userId;
+    const petType = state.pet.type || 'pet';
+
+    // Seed LS from DB flags on first visit (helps brand-new mobile)
+    try {
+      const key = lsKey(uid, petType);
+      if (!localStorage.getItem(key)) {
+        const pre = state.inventory.filter(i => String(i.type).toLowerCase() === 'accessories' && i.equipped)
+                                   .map(i => Number(i.id));
+        if (pre.length) localStorage.setItem(key, JSON.stringify([...new Set(pre)]));
+      }
+    } catch {}
+
+    const equipped = readEquippedIds(uid, petType);
+    host.innerHTML = '';
+    if (!equipped.length) return;
+
+    const byId = new Map(state.inventory.map(i => [Number(i.id), i]));
+    let z = 1000;
+    equipped.forEach(id => {
+      const item = byId.get(Number(id));
+      if (!item) return;
+      if (String(item.type).toLowerCase() !== 'accessories') return;
+
+      const src = resolveAccessorySrc(item, petType);
+      if (!src) return;
+
+      const img = new Image();
+      img.alt = item.name || 'Accessory';
+      Object.assign(img.style, {
+        position:'absolute', inset:'0', width:'100%', height:'100%',
+        objectFit:'contain', pointerEvents:'none', zIndex:String(z++)
+      });
+      img.src = src;
+      host.appendChild(img);
+    });
+  }
+
+  async function boot(){
+    const host = await waitForContainer();
+    if (!host) return;  // No Pet Dome found—exit quietly
+    const state = await ensureState();
+    if (!state) return;
+    render(state, host);
+  }
+
+  // Start
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  // Cross-tab updates (equip elsewhere → reflect here)
+  window.addEventListener('storage', (e)=>{
+    if (!e.key || !e.key.startsWith('gaku_equipped_')) return;
+    boot();
+  });
+
+  // Manual refresh for quick testing
+  window.MobileQuizzesPetSync = { refresh: boot };
+})();
+</script>
+<?php endif; ?>
+
+
 <?php include 'include/footer.php'; ?>
 
 <?php if ($isMobile): ?>
