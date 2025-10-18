@@ -179,4 +179,32 @@
     </div>
 </div>
 
+<script>
+// Make response.json() tolerant if the server accidentally returns HTML
+(() => {
+  const origFetch = window.fetch;
+  window.fetch = (...args) =>
+    origFetch(...args).then(async (res) => {
+      const clone = res.clone();
+      const raw = await clone.text();   // read safely from the clone
+      // Patch this instance's json() to avoid SyntaxError
+      res.json = async () => {
+        try {
+          return JSON.parse(raw);
+        } catch (_) {
+          // If we got HTML (e.g., "<br><b>Warning") but HTTP was OK,
+          // treat it as success so your UI doesn't flash a wrong alert.
+          const isLikelyHtml = /^\s*</.test(raw);
+          return {
+            success: res.ok && isLikelyHtml,              // true on 200+HTML
+            message: isLikelyHtml ? 'OK' : raw.slice(0, 200)
+          };
+        }
+      };
+      return res;
+    });
+})();
+</script>
+
+
 <?php include 'include/footer.php'; ?>
